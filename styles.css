@@ -145,6 +145,8 @@ body {
 
 .menu-buttons { display: flex; flex-direction: column; gap: var(--spacing-md); align-items: center; margin-bottom: var(--spacing-xl); }
 
+.settings-row { display: flex; gap: var(--spacing-sm); align-items: center; justify-content: center; }
+
 .game-btn {
     position: relative;
     padding: clamp(0.8rem, 2vw, 1.2rem) clamp(2rem, 5vw, 3.5rem);
@@ -202,41 +204,29 @@ body {
 
 .game-btn.icon {
     min-width: auto;
-    padding: clamp(0.8rem, 2vw, 1.2rem);
+    padding: clamp(0.6rem, 1.5vw, 1rem);
     border-radius: 50%;
-    width: 60px; height: 60px;
+    width: 45px; height: 45px;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
-.game-btn.icon .btn-icon { font-size: 1.5rem; }
+.game-btn.icon.small {
+    width: 40px; height: 40px;
+    padding: 0.5rem;
+}
+
+.game-btn.small {
+    min-width: auto;
+    padding: clamp(0.5rem, 1.2vw, 0.7rem) clamp(1rem, 2.5vw, 1.5rem);
+    font-size: clamp(0.7rem, 1.5vw, 0.85rem);
+}
+
+.game-btn.icon .btn-icon { font-size: 1.2rem; }
+.game-btn.icon.small .btn-icon { font-size: 1rem; }
 .game-btn:active { transform: translateY(-1px) scale(0.98); }
 .game-btn.large { min-width: 300px; padding: clamp(1rem, 2.5vw, 1.5rem) clamp(3rem, 6vw, 4rem); font-size: clamp(1rem, 2.2vw, 1.4rem); }
-
-.instructions-panel {
-    background: var(--glass-bg);
-    backdrop-filter: blur(15px);
-    border: 1px solid var(--glass-border);
-    border-radius: var(--radius-lg);
-    padding: var(--spacing-lg);
-    margin-bottom: var(--spacing-lg);
-    max-width: 400px;
-}
-
-.panel-header { font-size: 0.9rem; font-weight: 600; color: var(--text-secondary); letter-spacing: 2px; margin-bottom: var(--spacing-md); text-transform: uppercase; }
-.instruction-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--spacing-md); }
-.instruction-item { display: flex; flex-direction: column; align-items: center; gap: var(--spacing-xs); }
-
-.key-badge {
-    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-    color: var(--bg-dark);
-    padding: var(--spacing-xs) var(--spacing-sm);
-    border-radius: var(--radius-sm);
-    font-size: 0.7rem;
-    font-weight: 700;
-    letter-spacing: 1px;
-}
 
 .instruction-text { font-size: 0.75rem; color: var(--text-secondary); text-align: center; }
 .stats-preview { display: flex; gap: var(--spacing-lg); }
