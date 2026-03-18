@@ -181,7 +181,7 @@ class GameRenderer {
         }
     }
 
-    drawSnake(snake, time) {
+    drawSnake(snake, time, direction) {
         snake.forEach((segment, index) => {
             const isHead = index === 0;
             const x = segment.x * CONFIG.GRID_SIZE;
@@ -217,7 +217,7 @@ class GameRenderer {
 
             // Draw eyes on head
             if (isHead) {
-                this.drawEyes(x, y, segmentSize);
+                this.drawEyes(x, y, segmentSize, direction || { x: 1, y: 0 });
             }
 
             // Reset shadow
@@ -225,7 +225,7 @@ class GameRenderer {
         });
     }
 
-    drawEyes(x, y, size) {
+    drawEyes(x, y, size, direction) {
         this.ctx.fillStyle = '#ffffff';
         this.ctx.shadowColor = '#ffffff';
         this.ctx.shadowBlur = 5;
@@ -234,8 +234,8 @@ class GameRenderer {
         const eyeOffset = size * 0.25;
         
         // Position eyes based on direction
-        const dirX = game.direction.x;
-        const dirY = game.direction.y;
+        const dirX = direction ? direction.x : 1;
+        const dirY = direction ? direction.y : 0;
 
         let eye1X, eye1Y, eye2X, eye2Y;
 
@@ -266,7 +266,7 @@ class GameRenderer {
         const y = food.y * CONFIG.GRID_SIZE + CONFIG.GRID_SIZE / 2;
         
         // Pulsing animation
-        const pulse = Math.sin(time * 0.005 + game.foodPulsePhase) * 3;
+        const pulse = Math.sin(time * 0.005 + (state.foodPulsePhase || 0)) * 3;
         const baseRadius = CONFIG.GRID_SIZE / 2 - 4;
         const radius = baseRadius + pulse;
 
@@ -299,7 +299,7 @@ class GameRenderer {
         this.clear();
         this.drawGrid();
         this.drawFood(state.food, time);
-        this.drawSnake(state.snake, time);
+        this.drawSnake(state.snake, time, state.direction);
     }
 }
 

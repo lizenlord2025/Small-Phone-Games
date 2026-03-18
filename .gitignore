@@ -1,11 +1,15 @@
+```
 # Compiled and build artifacts
 *.pyc
 __pycache__/
 *.o
 *.obj
-dist/
-build/
-target/
+*.class
+*.exe
+*.dll
+*.so
+*.a
+*.out
 
 # Dependencies
 node_modules/
@@ -13,35 +17,60 @@ venv/
 .venv/
 .env
 .env.local
-*.env.*
+.env.*
+
+# Build directories
+dist/
+build/
+target/
+
+# Python specific
+*.pyc
+__pycache__/
+*.pyo
+*.pyd
+.Python
+*.so
+.Python
+*.egg-info/
+.eggs/
+.coverage
+coverage/
+htmlcov/
+.mypy_cache/
+.pytest_cache/
+.tox/
+
+# JavaScript/Node specific
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+node_modules/
+dist/
+build/
+.npm/
+.yarn/
 
 # Logs and temp files
 *.log
 *.tmp
 *.swp
+*.swo
+
+# OS generated files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Icon?
+.directory
+.Trashes
+*.nib
 
 # Editors
 .vscode/
 .idea/
 *.swp
 *.swo
-
-# System files
-.DS_Store
-Thumbs.db
-
-# Coverage
-coverage/
-htmlcov/
-.coverage
-
-# Python specific
-.mypy_cache/
-.pytest_cache/
-
-# Java/Gradle
-.gradle/
-*.class
 
 # Compressed files
 *.zip
@@ -62,3 +91,346 @@ htmlcov/
 *.Z
 *.lz
 *.lzo
+*.tar.gz
+*.tar.bz2
+*.tar.xz
+*.tar.zst
+
+# Gradle
+.gradle/
+build/
+
+# Java
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+hs_err_pid*
+
+# C/C++
+*.o
+*.obj
+*.a
+*.lib
+*.so
+*.dylib
+*.dll
+*.exe
+
+# Go
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Ruby
+*.gem
+*.rbc
+.bundle/
+vendor/bundle/
+.ruby-version
+.rbenv-vars
+.travis.yml
+.rubocop.yml
+.rubocop_todo.yml
+
+# Rust
+target/
+Cargo.lock
+
+# Julia
+.julia/
+.JuliaFormatter.toml
+.julia_history
+
+# Zig
+zig-cache/
+zig-out/
+
+# Temporary folders
+tmp/
+temp/
+.TemporaryItems
+.deps/
+
+# IDE specific
+.vs/
+.vscode/
+.idea/
+.project
+.classpath
+.settings/
+*.launch
+nbproject/
+*.swp
+*.swo
+*~
+._*
+.DS_Store
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# Environment variables
+.env
+.env.local
+.env.*
+!.env.example
+
+# Coverage reports
+coverage/
+*.lcov
+*.profdata
+*.coverage
+.coverage
+.pytest_cache/
+
+# Distribution / packaging
+.Python
+*.egg-info/
+.eggs/
+.installed.cfg
+*.egg
+
+# MyPy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# PyTest
+.pytest_cache/
+
+# Tox
+.tox/
+
+# Sphinx documentation
+docs/_build/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Django
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+# Flask
+instance/
+.webassets-cache
+
+# Scrapy
+.scrapy
+
+# Sphinx
+docs/_build/
+
+# PyBuilder
+.pybuilder/
+
+# Jekyll
+_site/
+
+# Docker
+.dockerignore
+docker-compose*.yml
+
+# Kubernetes
+*.kubeconfig
+
+# Ansible
+.retry
+
+# Terraform
+*.tfstate
+*.tfstate.*
+
+# Vagrant
+.vagrant/
+
+# VirtualEnv
+venv/
+ENV/
+env/
+ENV/
+.venv/
+.env/
+
+# Conda
+.conda/
+
+# Miniconda
+.miniconda/
+
+# Pipenv
+Pipfile.lock
+
+# Poetry
+poetry.lock
+poetry.toml
+
+# Bower
+bower_components/
+
+# Grunt
+Gruntfile.js
+
+# Gulp
+gulpfile.js
+
+# Webpack
+webpack.config.js
+
+# Babel
+.babelrc
+babel.config.js
+
+# ESLint
+.eslintrc
+eslint.config.js
+
+# Prettier
+.prettierrc
+prettier.config.js
+
+# Jest
+jest.config.js
+
+# Mocha
+mocha.opts
+
+# Karma
+karma.conf.js
+
+# Protractor
+protractor.conf.js
+
+# Selenium
+selenium-server-standalone.jar
+
+# PhantomJS
+phantomjs
+phantomjs-*
+
+# CasperJS
+casperjs
+
+# Nightwatch
+nightwatch.json
+
+# Cypress
+cypress/screenshots/
+cypress/videos/
+
+# Playwright
+playwright-report/
+
+# TestCafe
+testcafe-report.json
+
+# Newman
+newman/
+
+# Postman
+postman/
+
+# Swagger
+swagger/
+
+# OpenAPI
+openapi/
+
+# API Blueprint
+apiblueprint/
+
+# RAML
+raml/
+
+# GraphQL
+.graphql
+
+# Protocol Buffers
+.pb.go
+.pb.ts
+.pb.js
+
+# Thrift
+*.thrift
+
+# WebAssembly
+*.wasm
+
+# Binary extensions
+*.bin
+*.dat
+*.hex
+*.map
+*.sym
+
+# Lock files
+package-lock.json
+composer.lock
+Gemfile.lock
+Pipfile.lock
+poetry.lock
+yarn.lock
+Cargo.lock
+go.sum
+
+# Configuration
+config/
+secrets/
+credentials/
+tokens/
+keys/
+certs/
+ssl/
+
+# Cache
+.cache/
+.caches/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+**/__pycache__/
+**/*.py[cod]
+*$py.class
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.backup
+*.swp
+*.swo
+*~
+
+# System files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Icon?
+.directory
+.Trashes
+*.nib
+
+# Backup files
+*~
+*.bak
+*.backup
+*.old
+*.orig
+*.rej
+*.swp
+*.swo
+
+# Hidden files and folders (except .gitignore itself)
+.*
+!.gitignore
+
+```
