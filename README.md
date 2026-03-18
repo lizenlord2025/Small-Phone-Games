@@ -1,2 +1,2 @@
 # Small-Phone-Games
-A bunch
+A bunch of small games
