@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neon Snake Game</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="game-container">
+        <!-- Start Screen -->
+        <div id="start-screen" class="screen active">
+            <h1 class="game-title">NEON SNAKE</h1>
+            <p class="subtitle">Classic Game, Modern Style</p>
+            <button id="start-btn" class="game-btn">
+                <span>PLAY GAME</span>
+                <div class="btn-glow"></div>
+            </button>
+            <div class="instructions">
+                <p>Use Arrow Keys or WASD to move</p>
+                <p>Eat food to grow and score points</p>
+                <p>Don't hit walls or yourself!</p>
+            </div>
+        </div>
+
+        <!-- Game Screen -->
+        <div id="game-screen" class="screen">
+            <div class="score-container">
+                <div class="score-box">
+                    <span class="score-label">SCORE</span>
+                    <span id="score" class="score-value">0</span>
+                </div>
+                <div class="score-box">
+                    <span class="score-label">HIGH SCORE</span>
+                    <span id="high-score" class="score-value">0</span>
+                </div>
+            </div>
+            <canvas id="game-canvas"></canvas>
+        </div>
+
+        <!-- Game Over Screen -->
+        <div id="game-over-screen" class="screen">
+            <h2 class="game-over-title">GAME OVER</h2>
+            <div class="final-score">
+                <p class="score-text">Final Score</p>
+                <p id="final-score" class="final-score-value">0</p>
+            </div>
+            <button id="restart-btn" class="game-btn">
+                <span>PLAY AGAIN</span>
+                <div class="btn-glow"></div>
+            </button>
+            <button id="menu-btn" class="game-btn secondary">
+                <span>MENU</span>
+            </button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
