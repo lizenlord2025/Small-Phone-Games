@@ -22,6 +22,9 @@ const CONFIG = {
     }
 };
 
+// Global game instance
+let game = null;
+
 // ============================================
 // AUDIO SYSTEM (Web Audio API)
 // ============================================
@@ -92,9 +95,9 @@ class GameState {
         this.foodPulsePhase = 0;
     }
 
-    reset() {
-        const startX = 10;
-        const startY = 10;
+    reset(gridWidth, gridHeight) {
+        const startX = Math.floor(gridWidth / 2);
+        const startY = Math.floor(gridHeight / 2);
         this.snake = [
             { x: startX, y: startY },
             { x: startX - 1, y: startY },
@@ -104,15 +107,15 @@ class GameState {
         this.nextDirection = { x: 1, y: 0 };
         this.score = 0;
         this.gameSpeed = CONFIG.INITIAL_SPEED;
-        this.spawnFood();
+        this.spawnFood(gridWidth, gridHeight);
     }
 
-    spawnFood() {
+    spawnFood(gridWidth, gridHeight) {
         let validPosition = false;
         while (!validPosition) {
             this.food = {
-                x: Math.floor(Math.random() * (canvas.width / CONFIG.GRID_SIZE)),
-                y: Math.floor(Math.random() * (canvas.height / CONFIG.GRID_SIZE))
+                x: Math.floor(Math.random() * gridWidth),
+                y: Math.floor(Math.random() * gridHeight)
             };
             // Ensure food doesn't spawn on snake
             validPosition = !this.snake.some(segment => 
@@ -402,7 +405,12 @@ class SnakeGame {
         this.audio.playStartSound();
         
         this.switchScreen('game-screen');
-        this.state.reset();
+        
+        // Calculate grid dimensions based on canvas size
+        const gridWidth = Math.floor(this.canvas.width / CONFIG.GRID_SIZE);
+        const gridHeight = Math.floor(this.canvas.height / CONFIG.GRID_SIZE);
+        
+        this.state.reset(gridWidth, gridHeight);
         this.state.isRunning = true;
         this.updateScoreDisplay();
         
@@ -412,7 +420,12 @@ class SnakeGame {
 
     restartGame() {
         this.audio.playStartSound();
-        this.state.reset();
+        
+        // Calculate grid dimensions based on canvas size
+        const gridWidth = Math.floor(this.canvas.width / CONFIG.GRID_SIZE);
+        const gridHeight = Math.floor(this.canvas.height / CONFIG.GRID_SIZE);
+        
+        this.state.reset(gridWidth, gridHeight);
         this.state.isRunning = true;
         this.updateScoreDisplay();
         
@@ -495,7 +508,11 @@ class SnakeGame {
         }
 
         this.updateScoreDisplay();
-        this.state.spawnFood();
+        
+        // Calculate grid dimensions for food spawn
+        const gridWidth = Math.floor(this.canvas.width / CONFIG.GRID_SIZE);
+        const gridHeight = Math.floor(this.canvas.height / CONFIG.GRID_SIZE);
+        this.state.spawnFood(gridWidth, gridHeight);
         
         // Randomize food pulse phase for variety
         this.state.foodPulsePhase = Math.random() * Math.PI * 2;
@@ -522,20 +539,21 @@ class SnakeGame {
         const scoreElement = document.getElementById('score');
         const highScoreElement = document.getElementById('high-score');
         
-        scoreElement.textContent = this.state.score;
-        highScoreElement.textContent = this.state.highScore;
+        if (scoreElement) scoreElement.textContent = this.state.score;
+        if (highScoreElement) highScoreElement.textContent = this.state.highScore;
 
         // Animate score change
-        scoreElement.classList.remove('pop');
-        void scoreElement.offsetWidth; // Trigger reflow
-        scoreElement.classList.add('pop');
+        if (scoreElement) {
+            scoreElement.classList.remove('pop');
+            void scoreElement.offsetWidth; // Trigger reflow
+            scoreElement.classList.add('pop');
+        }
     }
 }
 
 // ============================================
 // INITIALIZATION
 // ============================================
-let game;
 
 window.addEventListener('DOMContentLoaded', () => {
     game = new SnakeGame();
