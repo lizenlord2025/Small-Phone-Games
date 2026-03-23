@@ -36,6 +36,9 @@
                     <button id="difficulty-btn" class="game-btn secondary small">
                         <span class="btn-text"><span id="current-difficulty">MEDIUM</span></span>
                     </button>
+                    <button id="mode-btn" class="game-btn secondary small">
+                        <span class="btn-text"><span id="current-mode">CLASSIC</span></span>
+                    </button>
                     <button id="theme-btn" class="game-btn tertiary small">
                         <span class="btn-text"><span id="current-theme">CYBERPUNK</span></span>
                     </button>
@@ -49,6 +52,10 @@
                 <div class="stat-box">
                     <span class="stat-label">HIGH SCORE</span>
                     <span id="menu-high-score" class="stat-value">0</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-label">LEVEL / XP</span>
+                    <span id="menu-level" class="stat-value">1 · 0 XP</span>
                 </div>
             </div>
         </div>
@@ -141,10 +148,14 @@
                         <span class="btn-text">PLAY AGAIN</span>
                         <div class="btn-shine"></div>
                     </button>
+                    <button id="share-btn" class="game-btn tertiary">
+                        <span class="btn-text">SHARE SCORE</span>
+                    </button>
                     <button id="menu-btn" class="game-btn secondary">
                         <span class="btn-text">MAIN MENU</span>
                     </button>
                 </div>
+                <div id="run-xp-summary" class="death-reason">+0 XP earned</div>
             </div>
         </div>
         
@@ -199,11 +210,27 @@
                 <button class="modal-close" id="close-theme">&times;</button>
             </div>
         </div>
+
+        <div id="mode-modal" class="modal">
+            <div class="modal-content glass-panel">
+                <h3 class="modal-title">SELECT MODE</h3>
+                <div class="difficulty-options">
+                    <button class="mode-option" data-mode="classic"><span class="diff-name">CLASSIC</span><span class="diff-desc">Core endless snake run</span></button>
+                    <button class="mode-option" data-mode="timeAttack"><span class="diff-name">TIME ATTACK</span><span class="diff-desc">Max score in 90 seconds</span></button>
+                    <button class="mode-option" data-mode="survival"><span class="diff-name">ENDLESS SURVIVAL</span><span class="diff-desc">Long-form pacing challenge</span></button>
+                    <button class="mode-option" data-mode="noWalls"><span class="diff-name">NO WALLS</span><span class="diff-desc">Wrap around world edges</span></button>
+                    <button class="mode-option" data-mode="hardcore"><span class="diff-name">HARDCORE</span><span class="diff-desc">Fast speed, one mistake ends run</span></button>
+                </div>
+                <button class="modal-close" id="close-mode">&times;</button>
+            </div>
+        </div>
         
         <!-- FPS Counter (Dev Mode) -->
         <div id="fps-counter" class="fps-counter">
             FPS: <span id="fps-value">60</span>
         </div>
+        <div class="letterbox letterbox-top"></div>
+        <div class="letterbox letterbox-bottom"></div>
     </div>
 
     <script src="script.js"></script>

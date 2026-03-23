@@ -9,8 +9,26 @@ const STORAGE_KEYS = {
   stats: 'neonSnake.stats',
   leaderboard: 'neonSnake.leaderboard',
   ghost: 'neonSnake.ghostPath',
-  settings: 'neonSnake.settings'
+  settings: 'neonSnake.settings',
+  progression: 'neonSnake.progression',
+  cosmetics: 'neonSnake.cosmetics'
 };
+const GAME_MODES = {
+  classic: { label: 'CLASSIC', wrap: false, timeLimit: 0, speedBoost: 0 },
+  timeAttack: { label: 'TIME ATTACK', wrap: false, timeLimit: 90, speedBoost: 8 },
+  survival: { label: 'ENDLESS SURVIVAL', wrap: false, timeLimit: 0, speedBoost: -10 },
+  noWalls: { label: 'NO WALLS', wrap: true, timeLimit: 0, speedBoost: 0 },
+  hardcore: { label: 'HARDCORE', wrap: false, timeLimit: 0, speedBoost: 40 }
+};
+const SKINS = [
+  { key: 'default', name: 'Default', minLevel: 1 },
+  { key: 'plasma', name: 'Plasma', minLevel: 3 },
+  { key: 'ember', name: 'Ember', minLevel: 5 }
+];
+const TRAILS = [
+  { key: 'neon', name: 'Neon', minLevel: 1 },
+  { key: 'stardust', name: 'Stardust', minLevel: 4 }
+];
 
 const DIFFICULTIES = {
   easy: { speed: 180, spawnWindow: 8, riskChance: 0.2 },
@@ -101,16 +119,29 @@ class AudioManager {
 }
 
 class ParticleSystem {
-  constructor() { this.items = []; }
+  constructor() {
+    this.items = [];
+    this.pool = Array.from({ length: 320 }, () => ({ active: false, x: 0, y: 0, vx: 0, vy: 0, life: 0, size: 0, color: '#fff' }));
+  }
+  getParticle() {
+    return this.pool.find(p => !p.active);
+  }
+  emit(x, y, vx, vy, life, size, color) {
+    const p = this.getParticle();
+    if (!p) return;
+    p.active = true;
+    p.x = x; p.y = y; p.vx = vx; p.vy = vy; p.life = life; p.size = size; p.color = color;
+    this.items.push(p);
+  }
   burst(x, y, color, count = 20, spread = 1) {
     for (let i = 0; i < count; i += 1) {
       const angle = Math.random() * Math.PI * 2;
       const speed = (40 + Math.random() * 160) * spread;
-      this.items.push({ x, y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, life: 0.4 + Math.random() * 0.6, size: 1 + Math.random() * 4, color });
+      this.emit(x, y, Math.cos(angle) * speed, Math.sin(angle) * speed, 0.4 + Math.random() * 0.6, 1 + Math.random() * 4, color);
     }
   }
   trail(x, y, color) {
-    this.items.push({ x, y, vx: (Math.random() - 0.5) * 12, vy: (Math.random() - 0.5) * 12, life: 0.15 + Math.random() * 0.2, size: 1 + Math.random() * 2.2, color });
+    this.emit(x, y, (Math.random() - 0.5) * 12, (Math.random() - 0.5) * 12, 0.15 + Math.random() * 0.2, 1 + Math.random() * 2.2, color);
   }
   update(dt) {
     this.items = this.items.filter(p => {
@@ -119,7 +150,11 @@ class ParticleSystem {
       p.y += p.vy * dt;
       p.vx *= 0.97;
       p.vy *= 0.97;
-      return p.life > 0;
+      if (p.life <= 0) {
+        p.active = false;
+        return false;
+      }
+      return true;
     });
   }
   draw(ctx) {
@@ -182,6 +217,9 @@ class SnakeSystem {
     this.turnSpeed = 13;
     this.invincible = 0;
     this.growth = 3;
+    this.turnRate = 0;
+    this.breathPhase = 0;
+    this.wrapMode = false;
     this.reset();
   }
   reset(bounds = { w: 700, h: 700 }) {
@@ -204,10 +242,21 @@ class SnakeSystem {
   }
   update(dt) {
     this.invincible = Math.max(0, this.invincible - dt);
+    this.breathPhase += dt * (2.2 + this.speed * 0.002);
     const diff = Math.atan2(Math.sin(this.head.targetAngle - this.head.angle), Math.cos(this.head.targetAngle - this.head.angle));
+    this.turnRate = Math.abs(diff) / Math.max(dt, 0.0001);
     this.head.angle += diff * Math.min(1, dt * this.turnSpeed);
-    this.head.x += Math.cos(this.head.angle) * this.speed * dt;
-    this.head.y += Math.sin(this.head.angle) * this.speed * dt;
+    const microWobble = Math.sin(this.breathPhase * 5.5) * 0.03 + (Math.random() - 0.5) * 0.014;
+    const driveAngle = this.head.angle + microWobble;
+    this.head.x += Math.cos(driveAngle) * this.speed * dt;
+    this.head.y += Math.sin(driveAngle) * this.speed * dt;
+
+    if (this.wrapMode) {
+      if (this.head.x < 0) this.head.x = this.bounds.w;
+      if (this.head.y < 0) this.head.y = this.bounds.h;
+      if (this.head.x > this.bounds.w) this.head.x = 0;
+      if (this.head.y > this.bounds.h) this.head.y = 0;
+    }
 
     this.segments[0] = { x: this.head.x, y: this.head.y };
     for (let i = 1; i < this.segments.length; i += 1) {
@@ -217,7 +266,8 @@ class SnakeSystem {
       const dy = prev.y - cur.y;
       const d = Math.hypot(dx, dy) || 1;
       const desired = this.segmentDistance;
-      const pull = (d - desired) * 0.3;
+      const delay = Math.max(0.17, 0.34 - i * 0.004);
+      const pull = (d - desired) * delay;
       cur.x += (dx / d) * pull;
       cur.y += (dy / d) * pull;
     }
@@ -246,6 +296,7 @@ class SnakeSystem {
     });
   }
   collidesWall() {
+    if (this.wrapMode) return false;
     const m = 12;
     return this.head.x < m || this.head.y < m || this.head.x > this.bounds.w - m || this.head.y > this.bounds.h - m;
   }
@@ -293,8 +344,10 @@ class Renderer {
     this.particles = particles;
     this.getTheme = getTheme;
     this.layers = Array.from({ length: 44 }, () => ({ x: Math.random(), y: Math.random(), z: 0.2 + Math.random() * 1.8 }));
+    this.ambient = Array.from({ length: 70 }, () => ({ x: Math.random(), y: Math.random(), vx: (Math.random() - 0.5) * 0.0003, vy: (Math.random() - 0.5) * 0.0003 }));
     this.zoom = 1;
     this.shake = 0;
+    this.tilt = 0;
     this.resize();
     window.addEventListener('resize', () => this.resize());
   }
@@ -335,15 +388,25 @@ class Renderer {
     ctx.fillStyle = vignette;
     ctx.fillRect(0, 0, w, h);
 
-    const hue = Math.min(140, score * 0.8);
+    const hue = (time * 0.01 + Math.min(140, score * 0.8)) % 360;
     ctx.fillStyle = `hsla(${hue}, 90%, 55%, 0.06)`;
     ctx.fillRect(0, 0, w, h);
+
+    for (const a of this.ambient) {
+      a.x = (a.x + a.vx) % 1;
+      a.y = (a.y + a.vy) % 1;
+      ctx.fillStyle = 'rgba(180,220,255,0.18)';
+      ctx.beginPath();
+      ctx.arc(a.x * w, a.y * h, 1.2, 0, Math.PI * 2);
+      ctx.fill();
+    }
   }
   drawState(state, debug = false) {
     const ctx = this.ctx;
-    const { snake, foodSystem, time, score } = state;
+    const { snake, foodSystem, time, score, timeScale } = state;
     const theme = this.getTheme();
-    this.zoom += ((1 + Math.min(0.08, score * 0.0007)) - this.zoom) * 0.08;
+    this.zoom += ((1 + Math.min(0.15, score * 0.0012)) - this.zoom) * 0.08;
+    this.tilt += ((Math.sin(snake.head.angle) * 0.008) + Math.min(0.03, snake.turnRate * 0.0004) - this.tilt) * 0.1;
     this.shake *= 0.87;
 
     ctx.save();
@@ -351,6 +414,7 @@ class Renderer {
     const sx = (Math.random() - 0.5) * this.shake;
     const sy = (Math.random() - 0.5) * this.shake;
     ctx.translate(this.canvas.width / 2 + sx, this.canvas.height / 2 + sy);
+    ctx.rotate(this.tilt);
     ctx.scale(this.zoom, this.zoom);
     ctx.translate(-this.canvas.width / 2, -this.canvas.height / 2);
 
@@ -370,7 +434,7 @@ class Renderer {
     }
     ctx.globalAlpha = 1;
 
-    if (foodSystem.food) this.drawFood(foodSystem.food, time);
+    if (foodSystem.food) this.drawFood(foodSystem.food, time, snake.segments[0]);
     if (foodSystem.powerup) this.drawPowerup(foodSystem.powerup, time);
 
     this.drawGhost(state.ghost);
@@ -383,8 +447,8 @@ class Renderer {
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
     ctx.shadowColor = theme.body[0];
-    ctx.shadowBlur = 14 + Math.min(24, snake.speed * 0.09);
-    ctx.lineWidth = 14;
+    ctx.shadowBlur = 14 + Math.min(24, snake.speed * 0.09) + Math.min(16, score * 0.04);
+    ctx.lineWidth = 14 + Math.sin(snake.breathPhase) * 0.9;
     ctx.beginPath();
     ctx.moveTo(snake.segments[0].x, snake.segments[0].y);
     for (let i = 1; i < snake.segments.length; i += 1) {
@@ -397,6 +461,11 @@ class Renderer {
     ctx.stroke();
 
     const h = snake.segments[0];
+    const light = ctx.createRadialGradient(h.x, h.y, 0, h.x, h.y, 95);
+    light.addColorStop(0, 'rgba(180,255,255,0.17)');
+    light.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = light;
+    ctx.fillRect(h.x - 95, h.y - 95, 190, 190);
     ctx.fillStyle = '#ffffff';
     ctx.shadowBlur = 18;
     ctx.beginPath();
@@ -405,14 +474,20 @@ class Renderer {
     ctx.shadowBlur = 0;
 
     this.particles.draw(ctx);
+    if (timeScale < 1) {
+      ctx.fillStyle = `rgba(120,180,255,${(1 - timeScale) * 0.2})`;
+      ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    }
 
     if (debug) this.drawDebug(state);
 
     ctx.restore();
   }
-  drawFood(food, time) {
+  drawFood(food, time, head) {
     const ctx = this.ctx;
-    const pulse = 1 + Math.sin(time * 0.006) * 0.18;
+    const distance = head ? Math.hypot(head.x - food.x, head.y - food.y) : 240;
+    const anticipation = Math.max(0, 1 - distance / 240);
+    const pulse = 1 + Math.sin(time * 0.006) * 0.18 + anticipation * 0.2;
     ctx.save();
     ctx.shadowColor = food.danger ? '#ff4577' : '#ff66ff';
     ctx.shadowBlur = food.danger ? 30 : 24;
@@ -484,6 +559,7 @@ class UIManager {
     this.overlay = document.getElementById('canvas-overlay');
     this.fps = document.getElementById('fps-counter');
     this.fpsValue = document.getElementById('fps-value');
+    this.menuLevel = document.getElementById('menu-level');
     this.floatLayer = document.createElement('div');
     this.floatLayer.className = 'ui-floating-layer';
     document.body.appendChild(this.floatLayer);
@@ -503,6 +579,7 @@ class UIManager {
     this.comboDisplay.classList.toggle('active', active);
     this.comboBar.style.transform = `scaleX(${Math.max(0, s.comboTimer / s.comboWindow)})`;
     this.overlay.style.opacity = String(Math.min(0.45, s.nearMissGlow));
+    document.querySelector('.score-display')?.classList.toggle('almost-there', s.almostThere);
     this.score.classList.toggle('pop', s.justScored);
     if (s.justScored) requestAnimationFrame(() => this.score.classList.remove('pop'));
   }
@@ -533,8 +610,12 @@ class UIManager {
     document.getElementById('snake-length').textContent = summary.length;
     document.getElementById('best-combo').textContent = `x${summary.bestCombo}`;
     document.getElementById('death-reason').textContent = summary.reason;
+    document.getElementById('run-xp-summary').textContent = `+${summary.xpEarned} XP earned`;
     document.getElementById('new-record-row').style.display = summary.newRecord ? 'flex' : 'none';
     this.setScreen('game-over-screen');
+  }
+  setMenuLevel(level, xp) {
+    if (this.menuLevel) this.menuLevel.textContent = `${level} · ${xp} XP`;
   }
 }
 
@@ -547,6 +628,7 @@ class GameEngine {
     this.bgCanvas = document.getElementById('bg-canvas');
     this.settings = this.loadSettings();
     this.theme = this.settings.theme || 'cyberpunk';
+    this.mode = this.settings.mode || 'classic';
     this.renderer = new Renderer(this.canvas, this.bgCanvas, this.particles, () => THEMES[this.theme]);
     this.input = new InputManager(this.bus, this.canvas);
     this.ui = new UIManager(this.bus);
@@ -561,12 +643,15 @@ class GameEngine {
     this.comboTimer = 0;
     this.comboWindow = 2.8;
     this.nearMissGlow = 0;
+    this.almostThere = false;
     this.justScored = false;
     this.foodCount = 0;
     this.bestCombo = 1;
     this.survivalTime = 0;
     this.highScore = Number(localStorage.getItem(STORAGE_KEYS.highScore) || 0);
     this.stats = JSON.parse(localStorage.getItem(STORAGE_KEYS.stats) || '{"games":0,"totalScore":0,"bestSurvival":0}');
+    this.progression = JSON.parse(localStorage.getItem(STORAGE_KEYS.progression) || '{"xp":0,"level":1}');
+    this.cosmetics = JSON.parse(localStorage.getItem(STORAGE_KEYS.cosmetics) || '{"skin":"default","trail":"neon","unlockedSkins":["default"],"unlockedTrails":["neon"]}');
     this.ghostPath = JSON.parse(localStorage.getItem(STORAGE_KEYS.ghost) || '[]');
     this.currentPath = [];
     this.achieved = new Set();
@@ -574,10 +659,17 @@ class GameEngine {
     this.last = 0;
     this.fpsFrame = 0;
     this.fpsTime = 0;
+    this.timeScale = 1;
+    this.pendingDeath = null;
+    this.modeTimeLeft = 0;
+    this.lowPerfMode = /Android|iPhone|iPad/i.test(navigator.userAgent);
+    this.lastBgDraw = 0;
     this.installUIHandlers();
     this.input.init();
     this.applyTheme(this.theme);
     this.updateMenuStats();
+    document.body.classList.add('intro-sequence');
+    setTimeout(() => document.body.classList.remove('intro-sequence'), 2200);
     this.tick = this.tick.bind(this);
     requestAnimationFrame(this.tick);
   }
@@ -589,8 +681,10 @@ class GameEngine {
     document.getElementById('pause-btn').addEventListener('click', () => this.togglePause());
     document.getElementById('difficulty-btn').addEventListener('click', () => this.toggleModal('difficulty-modal', true));
     document.getElementById('theme-btn').addEventListener('click', () => this.toggleModal('theme-modal', true));
+    document.getElementById('mode-btn').addEventListener('click', () => this.toggleModal('mode-modal', true));
     document.getElementById('close-difficulty').addEventListener('click', () => this.toggleModal('difficulty-modal', false));
     document.getElementById('close-theme').addEventListener('click', () => this.toggleModal('theme-modal', false));
+    document.getElementById('close-mode').addEventListener('click', () => this.toggleModal('mode-modal', false));
     document.querySelectorAll('.difficulty-option').forEach(el => el.addEventListener('click', () => {
       this.settings.difficulty = el.dataset.difficulty;
       document.getElementById('current-difficulty').textContent = el.dataset.difficulty.toUpperCase();
@@ -602,6 +696,13 @@ class GameEngine {
       document.getElementById('current-theme').textContent = el.dataset.theme.toUpperCase();
       this.persistSettings();
       this.toggleModal('theme-modal', false);
+    }));
+    document.querySelectorAll('.mode-option').forEach(el => el.addEventListener('click', () => {
+      this.settings.mode = el.dataset.mode;
+      this.mode = el.dataset.mode;
+      document.getElementById('current-mode').textContent = this.mode.toUpperCase();
+      this.persistSettings();
+      this.toggleModal('mode-modal', false);
     }));
     document.getElementById('sound-btn').addEventListener('click', () => {
       this.audio.enabled = !this.audio.enabled;
@@ -618,11 +719,25 @@ class GameEngine {
       void this.canvas.offsetWidth;
       this.canvas.classList.add('haptic-pulse');
     });
+    document.getElementById('share-btn').addEventListener('click', async () => {
+      const msg = `I scored ${Math.floor(this.score)} in Neon Snake (${this.mode.toUpperCase()})`;
+      await navigator.clipboard?.writeText(msg);
+      this.ui.flash('Copied score!', window.innerWidth * 0.5, window.innerHeight * 0.8, 'floating-points powerup');
+    });
+    document.querySelectorAll('.game-btn').forEach(btn => btn.addEventListener('click', (e) => {
+      this.audio.init();
+      btn.style.setProperty('--ripple-x', `${e.offsetX}px`);
+      btn.style.setProperty('--ripple-y', `${e.offsetY}px`);
+      btn.classList.remove('ripple');
+      void btn.offsetWidth;
+      btn.classList.add('ripple');
+      this.audio.tone(420, 0.05, 'square', 0.035, 1.05);
+    }));
   }
 
   loadSettings() {
     const s = JSON.parse(localStorage.getItem(STORAGE_KEYS.settings) || '{}');
-    return { difficulty: s.difficulty || 'medium', theme: s.theme || 'cyberpunk' };
+    return { difficulty: s.difficulty || 'medium', theme: s.theme || 'cyberpunk', mode: s.mode || 'classic' };
   }
   persistSettings() { localStorage.setItem(STORAGE_KEYS.settings, JSON.stringify(this.settings)); }
   applyTheme(theme) {
@@ -643,19 +758,28 @@ class GameEngine {
     this.combo = 1;
     this.comboTimer = 0;
     this.nearMissGlow = 0;
+    this.almostThere = false;
     this.justScored = false;
     this.foodCount = 0;
     this.bestCombo = 1;
     this.survivalTime = 0;
     this.achieved.clear();
     this.currentPath = [];
+    this.pendingDeath = null;
+    this.timeScale = 1;
+    this.mode = this.settings.mode || 'classic';
+    this.modeTimeLeft = GAME_MODES[this.mode]?.timeLimit || 0;
 
     this.renderer.resize();
-    this.snake.speed = 130 + (4 - Object.keys(DIFFICULTIES).indexOf(this.settings.difficulty)) * 4;
+    this.snake.speed = 130 + (4 - Object.keys(DIFFICULTIES).indexOf(this.settings.difficulty)) * 4 + (GAME_MODES[this.mode]?.speedBoost || 0);
     this.snake.reset({ w: this.canvas.width, h: this.canvas.height });
+    this.snake.wrapMode = Boolean(GAME_MODES[this.mode]?.wrap);
+    if (this.mode === 'hardcore') this.snake.turnSpeed = 16;
     this.foodSystem = new FoodSystem();
     this.foodSystem.spawn({ w: this.canvas.width, h: this.canvas.height }, this.snake.segments, false);
     this.ui.setScreen('game-screen');
+    document.body.classList.add('cinematic');
+    setTimeout(() => document.body.classList.remove('cinematic'), 1100);
 
     if (!localStorage.getItem('neonSnake.onboarded')) {
       this.ui.flash('Swipe / WASD / Arrows', window.innerWidth * 0.5 - 70, window.innerHeight * 0.7, 'floating-points onboarding');
@@ -679,8 +803,11 @@ class GameEngine {
     this.last = ts;
     this.elapsed += dtRaw;
 
-    this.renderer.drawBackground(ts, this.score);
-    if (this.state === 'playing' && !this.paused) this.update(dtRaw);
+    if (!this.lowPerfMode || ts - this.lastBgDraw > 33) {
+      this.renderer.drawBackground(ts, this.score);
+      this.lastBgDraw = ts;
+    }
+    if (this.state === 'playing' && !this.paused) this.update(dtRaw * this.timeScale);
 
     this.particles.update(dtRaw);
     this.renderer.drawState({
@@ -688,7 +815,8 @@ class GameEngine {
       foodSystem: this.foodSystem,
       time: ts,
       score: this.score,
-      ghost: this.ghostPath
+      ghost: this.ghostPath,
+      timeScale: this.timeScale
     }, this.debug);
 
     this.fpsFrame += 1;
@@ -703,6 +831,13 @@ class GameEngine {
 
   update(dt) {
     this.survivalTime += dt;
+    if (this.modeTimeLeft > 0) {
+      this.modeTimeLeft -= dt;
+      if (this.modeTimeLeft <= 0) {
+        this.endGame('Time attack complete');
+        return;
+      }
+    }
     const input = this.input.consume();
     if (input) this.snake.setDirection(input);
 
@@ -715,8 +850,20 @@ class GameEngine {
     this.currentPath.push({ x: head.x, y: head.y });
     if (this.currentPath.length > 900) this.currentPath.shift();
 
+    if (this.pendingDeath) {
+      this.pendingDeath.t -= dt;
+      this.timeScale = 0.35;
+      if (this.pendingDeath.t <= 0) {
+        const reason = this.pendingDeath.reason;
+        this.pendingDeath = null;
+        this.timeScale = 1;
+        this.endGame(reason);
+      }
+      return;
+    }
+
     if (this.snake.collidesWall() || (this.snake.collidesWithSelf() && this.snake.invincible <= 0)) {
-      this.endGame(this.snake.collidesWall() ? 'Hit the wall' : 'Bit your own neon tail');
+      this.pendingDeath = { t: 0.52, reason: this.snake.collidesWall() ? 'Hit the wall' : 'Bit your own neon tail' };
       return;
     }
 
@@ -724,6 +871,7 @@ class GameEngine {
       this.score += 0.3;
       this.nearMissGlow = 0.3;
       this.particles.trail(head.x, head.y, '#ffe280');
+      this.audio.tone(820, 0.05, 'triangle', 0.03, 0.94);
       this.ui.flash('NEAR MISS', head.x + 18, head.y + 18, 'floating-points warning');
     }
 
@@ -744,6 +892,14 @@ class GameEngine {
     if (this.comboTimer <= 0) this.combo = 1;
 
     this.displayScore += (this.score - this.displayScore) * 0.25;
+    this.almostThere = this.combo >= 4 || (this.modeTimeLeft > 0 && this.modeTimeLeft < 12);
+
+    const wallDist = Math.min(head.x, head.y, this.canvas.width - head.x, this.canvas.height - head.y);
+    if (wallDist < 28) this.score += 0.08; // edge riding bonus
+    const dense = this.snake.segments.slice(10).filter(s => Math.hypot(head.x - s.x, head.y - s.y) < 38).length;
+    if (dense >= 3) this.score += 0.16; // tight-space navigation bonus
+    if (this.snake.turnRate > 8 && this.snake.speed > 190) this.score += 0.18; // precision turn bonus
+
     this.ui.updateHUD(this);
     this.audio.setIntensity(Math.min(1, this.score / 300));
 
@@ -760,12 +916,14 @@ class GameEngine {
   consumeFood() {
     const food = this.foodSystem.food;
     const bonusCombo = this.comboTimer > 0 ? 1 : 0;
+    const perfectChain = this.comboTimer > this.comboWindow * 0.55;
     this.combo += bonusCombo;
     this.comboTimer = this.comboWindow;
     this.bestCombo = Math.max(this.bestCombo, this.combo);
     const base = food.danger ? 18 : 10;
     const expiryPenalty = Math.max(0.5, Math.min(1.2, food.life / (food.danger ? 6 : 12)));
-    const scoreAdd = Math.round(base * this.combo * expiryPenalty * (this.activePowerup === 'double' ? 2 : 1));
+    const chainMult = perfectChain ? 1.35 : 1;
+    const scoreAdd = Math.round(base * this.combo * chainMult * expiryPenalty * (this.activePowerup === 'double' ? 2 : 1));
     this.score += scoreAdd;
     this.foodCount += 1;
     this.snake.grow(3 + (food.danger ? 2 : 0));
@@ -775,6 +933,7 @@ class GameEngine {
     if (this.combo >= 3) this.audio.combo(this.combo);
     this.ui.flash(`+${scoreAdd}`, food.x, food.y);
     if (this.combo >= 2) this.ui.flash(`COMBO x${this.combo}`, food.x + 25, food.y + 10, 'floating-points combo');
+    if (perfectChain) this.ui.flash('PERFECT CHAIN', food.x - 20, food.y - 12, 'floating-points combo');
     this.foodSystem.food = null;
     this.justScored = true;
   }
@@ -822,17 +981,36 @@ class GameEngine {
       length: this.snake.segments.length,
       bestCombo: this.bestCombo,
       reason,
-      newRecord: Math.floor(this.score) > prevHigh
+      newRecord: Math.floor(this.score) > prevHigh,
+      xpEarned: this.awardProgression()
     });
+    document.body.classList.add('cinematic');
+    setTimeout(() => document.body.classList.remove('cinematic'), 1800);
+    this.canvas.classList.add('haptic-pulse');
+    setTimeout(() => this.canvas.classList.remove('haptic-pulse'), 280);
 
     this.updateMenuStats();
+  }
+
+  awardProgression() {
+    const xpEarned = Math.floor(this.score * 0.22 + this.survivalTime * 2 + this.bestCombo * 4);
+    this.progression.xp += xpEarned;
+    const level = 1 + Math.floor(this.progression.xp / 180);
+    this.progression.level = level;
+    for (const s of SKINS) if (level >= s.minLevel && !this.cosmetics.unlockedSkins.includes(s.key)) this.cosmetics.unlockedSkins.push(s.key);
+    for (const t of TRAILS) if (level >= t.minLevel && !this.cosmetics.unlockedTrails.includes(t.key)) this.cosmetics.unlockedTrails.push(t.key);
+    localStorage.setItem(STORAGE_KEYS.progression, JSON.stringify(this.progression));
+    localStorage.setItem(STORAGE_KEYS.cosmetics, JSON.stringify(this.cosmetics));
+    return xpEarned;
   }
 
   updateMenuStats() {
     document.getElementById('menu-high-score').textContent = String(this.highScore);
     document.getElementById('current-difficulty').textContent = this.settings.difficulty.toUpperCase();
     document.getElementById('current-theme').textContent = this.theme.toUpperCase();
+    document.getElementById('current-mode').textContent = this.mode.toUpperCase();
     document.getElementById('high-score').textContent = String(this.highScore);
+    this.ui.setMenuLevel(this.progression.level, this.progression.xp);
   }
 }
 
