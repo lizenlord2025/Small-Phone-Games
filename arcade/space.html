@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Neon Space - Neon Arcade</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="space.css">
+</head>
+<body>
+    <canvas id="bg-canvas"></canvas>
+
+    <div class="game-container">
+        <!-- Main Menu Screen -->
+        <div id="start-screen" class="screen active">
+            <div class="logo-container">
+                <h1 class="game-title">
+                    <span class="title-neon">NEON</span>
+                    <span class="title-space">SPACE</span>
+                </h1>
+                <div class="title-glow-effect"></div>
+            </div>
+
+            <button id="hub-btn-start" class="game-btn tertiary small" style="margin-top: 1rem; margin-bottom: 1rem;" onclick="window.location.href='index.html'">
+                <span class="btn-text">← BACK TO HUB</span>
+            </button>
+            <div class="menu-buttons">
+                <button id="start-btn" class="game-btn primary">
+                    <span class="btn-text">LAUNCH</span>
+                </button>
+                <div class="settings-row">
+                    <button id="difficulty-btn" class="game-btn secondary small">
+                        <span class="btn-text"><span id="current-difficulty">MEDIUM</span></span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="stats-preview">
+                <div class="stat-box">
+                    <span class="stat-label">HIGH SCORE</span>
+                    <span id="menu-high-score" class="stat-value">0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Screen -->
+        <div id="game-screen" class="screen">
+            <div class="hud-container">
+                <div class="score-display glass-panel">
+                    <span class="score-label">SCORE</span>
+                    <span id="score" class="score-value">0</span>
+                </div>
+                <div class="hud-center">
+                    <div class="health-bar-container glass-panel">
+                        <div id="health-bar" class="health-bar"></div>
+                    </div>
+                </div>
+                <div class="highscore-display glass-panel">
+                    <span class="score-label">BEST</span>
+                    <span id="high-score" class="score-value">0</span>
+                </div>
+            </div>
+
+            <!-- Boss Health -->
+            <div id="boss-hud" class="boss-hud hidden">
+                <span class="boss-label">OVERLORD</span>
+                <div class="boss-health-container">
+                    <div id="boss-health-bar" class="boss-health-bar"></div>
+                </div>
+            </div>
+
+            <div class="canvas-wrapper">
+                <canvas id="game-canvas"></canvas>
+            </div>
+
+            <div class="mobile-controls-hint">
+                <span>Drag to move & auto-shoot</span>
+            </div>
+        </div>
+
+        <!-- Game Over Screen -->
+        <div id="game-over-screen" class="screen">
+            <div class="gameover-content">
+                <h2 class="gameover-title">DESTROYED!</h2>
+
+                <div class="score-summary glass-panel large">
+                    <div class="summary-row">
+                        <span class="summary-label">FINAL SCORE</span>
+                        <span id="final-score" class="summary-value">0</span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="summary-label">BEST SCORE</span>
+                        <span id="final-high-score" class="summary-value highlight">0</span>
+                    </div>
+                </div>
+
+                <div class="gameover-buttons">
+                    <button id="restart-btn" class="game-btn primary large">
+                        <span class="btn-text">PLAY AGAIN</span>
+                    </button>
+                    <button id="menu-btn" class="game-btn secondary">
+                        <span class="btn-text">MAIN MENU</span>
+                    </button>
+                    <button id="hub-btn" class="game-btn tertiary" onclick="window.location.href='index.html'">
+                        <span class="btn-text">ARCADE HUB</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Difficulty Modal -->
+        <div id="difficulty-modal" class="modal">
+            <div class="modal-content glass-panel">
+                <h3 class="modal-title">SELECT DIFFICULTY</h3>
+                <div class="difficulty-options">
+                    <button class="difficulty-option" data-difficulty="easy">
+                        <span class="diff-name">EASY</span>
+                        <span class="diff-desc">More health, slower enemies</span>
+                    </button>
+                    <button class="difficulty-option" data-difficulty="medium">
+                        <span class="diff-name">MEDIUM</span>
+                        <span class="diff-desc">Standard challenge</span>
+                    </button>
+                    <button class="difficulty-option" data-difficulty="hard">
+                        <span class="diff-name">HARD</span>
+                        <span class="diff-desc">Frail ship, aggressive swarm</span>
+                    </button>
+                </div>
+                <button class="modal-close" id="close-difficulty">&times;</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="space.js"></script>
+</body>
+</html>
