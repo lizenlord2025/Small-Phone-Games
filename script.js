@@ -579,6 +579,19 @@ class UIManager {
     this.fps = document.getElementById('fps-counter');
     this.fpsValue = document.getElementById('fps-value');
     this.menuLevel = document.getElementById('menu-level');
+    this.menuHighScore = document.getElementById('menu-high-score');
+    this.currentDifficulty = document.getElementById('current-difficulty');
+    this.currentTheme = document.getElementById('current-theme');
+    this.currentMode = document.getElementById('current-mode');
+    this.soundIcon = document.getElementById('sound-icon');
+    this.finalScore = document.getElementById('final-score');
+    this.finalHighScore = document.getElementById('final-high-score');
+    this.foodEaten = document.getElementById('food-eaten');
+    this.snakeLength = document.getElementById('snake-length');
+    this.bestComboStat = document.getElementById('best-combo');
+    this.deathReason = document.getElementById('death-reason');
+    this.runXpSummary = document.getElementById('run-xp-summary');
+    this.newRecordRow = document.getElementById('new-record-row');
     this.floatLayer = document.createElement('div');
     this.floatLayer.className = 'ui-floating-layer';
     document.body.appendChild(this.floatLayer);
@@ -623,14 +636,14 @@ class UIManager {
   setDebug(visible) { this.fps.classList.toggle('visible', visible); }
   setFPS(v) { this.fpsValue.textContent = String(Math.round(v)); }
   gameOver(summary) {
-    document.getElementById('final-score').textContent = summary.score;
-    document.getElementById('final-high-score').textContent = summary.highScore;
-    document.getElementById('food-eaten').textContent = summary.food;
-    document.getElementById('snake-length').textContent = summary.length;
-    document.getElementById('best-combo').textContent = `x${summary.bestCombo}`;
-    document.getElementById('death-reason').textContent = summary.reason;
-    document.getElementById('run-xp-summary').textContent = `+${summary.xpEarned} XP earned`;
-    document.getElementById('new-record-row').style.display = summary.newRecord ? 'flex' : 'none';
+    this.finalScore.textContent = summary.score;
+    this.finalHighScore.textContent = summary.highScore;
+    this.foodEaten.textContent = summary.food;
+    this.snakeLength.textContent = summary.length;
+    this.bestComboStat.textContent = `x${summary.bestCombo}`;
+    this.deathReason.textContent = summary.reason;
+    this.runXpSummary.textContent = `+${summary.xpEarned} XP earned`;
+    this.newRecordRow.style.display = summary.newRecord ? 'flex' : 'none';
     this.setScreen('game-over-screen');
   }
   setMenuLevel(level, xp) {
@@ -706,32 +719,32 @@ class GameEngine {
     document.getElementById('close-mode').addEventListener('click', () => this.toggleModal('mode-modal', false));
     document.querySelectorAll('.difficulty-option').forEach(el => el.addEventListener('click', () => {
       this.settings.difficulty = el.dataset.difficulty;
-      document.getElementById('current-difficulty').textContent = el.dataset.difficulty.toUpperCase();
+      this.ui.currentDifficulty.textContent = el.dataset.difficulty.toUpperCase();
       this.persistSettings();
       this.toggleModal('difficulty-modal', false);
     }));
     document.querySelectorAll('.theme-option').forEach(el => el.addEventListener('click', () => {
       this.applyTheme(el.dataset.theme);
-      document.getElementById('current-theme').textContent = el.dataset.theme.toUpperCase();
+      this.ui.currentTheme.textContent = el.dataset.theme.toUpperCase();
       this.persistSettings();
       this.toggleModal('theme-modal', false);
     }));
     document.querySelectorAll('.mode-option').forEach(el => el.addEventListener('click', () => {
       this.settings.mode = el.dataset.mode;
       this.mode = el.dataset.mode;
-      document.getElementById('current-mode').textContent = this.mode.toUpperCase();
+      this.ui.currentMode.textContent = this.mode.toUpperCase();
       this.persistSettings();
       this.toggleModal('mode-modal', false);
     }));
     document.getElementById('sound-btn').addEventListener('click', () => {
       this.audio.enabled = !this.audio.enabled;
-      document.getElementById('sound-icon').textContent = this.audio.enabled ? '🔊' : '🔇';
+      this.ui.soundIcon.textContent = this.audio.enabled ? '🔊' : '🔇';
     });
     this.bus.on('togglePause', () => this.togglePause());
     this.bus.on('toggleDebug', (v) => { this.debug = v; this.ui.setDebug(v); });
     this.bus.on('toggleMute', () => {
       this.audio.enabled = !this.audio.enabled;
-      document.getElementById('sound-icon').textContent = this.audio.enabled ? '🔊' : '🔇';
+      this.ui.soundIcon.textContent = this.audio.enabled ? '🔊' : '🔇';
     });
     this.bus.on('hapticPulse', () => {
       this.canvas.classList.remove('haptic-pulse');
@@ -1024,11 +1037,11 @@ class GameEngine {
   }
 
   updateMenuStats() {
-    document.getElementById('menu-high-score').textContent = String(this.highScore);
-    document.getElementById('current-difficulty').textContent = this.settings.difficulty.toUpperCase();
-    document.getElementById('current-theme').textContent = this.theme.toUpperCase();
-    document.getElementById('current-mode').textContent = this.mode.toUpperCase();
-    document.getElementById('high-score').textContent = String(this.highScore);
+    this.ui.menuHighScore.textContent = String(this.highScore);
+    this.ui.currentDifficulty.textContent = this.settings.difficulty.toUpperCase();
+    this.ui.currentTheme.textContent = this.theme.toUpperCase();
+    this.ui.currentMode.textContent = this.mode.toUpperCase();
+    this.ui.high.textContent = String(this.highScore);
     this.ui.setMenuLevel(this.progression.level, this.progression.xp);
   }
 }
