@@ -70,6 +70,18 @@ const ACHIEVEMENTS = [
   { key: 'survive60', text: 'Survive 60 seconds', test: s => s.survivalTime >= 60 }
 ];
 
+const NAVIGATION_BONUS = {
+  EDGE_DISTANCE: 28,
+  EDGE_SCORE: 0.08,
+  DENSE_MIN_SEGMENT: 10,
+  DENSE_RADIUS: 38,
+  DENSE_COUNT: 3,
+  DENSE_SCORE: 0.16,
+  PRECISION_TURN_RATE: 8,
+  PRECISION_SPEED: 190,
+  PRECISION_SCORE: 0.18
+};
+
 class EventBus {
   constructor() { this.events = new Map(); }
   on(name, cb) { if (!this.events.has(name)) this.events.set(name, []); this.events.get(name).push(cb); }
@@ -927,10 +939,10 @@ class GameEngine {
     this.almostThere = this.combo >= 4 || (this.modeTimeLeft > 0 && this.modeTimeLeft < 12);
 
     const wallDist = Math.min(head.x, head.y, this.canvas.width - head.x, this.canvas.height - head.y);
-    if (wallDist < 28) this.score += 0.08; // edge riding bonus
-    const dense = this.snake.segments.slice(10).filter(s => Math.hypot(head.x - s.x, head.y - s.y) < 38).length;
-    if (dense >= 3) this.score += 0.16; // tight-space navigation bonus
-    if (this.snake.turnRate > 8 && this.snake.speed > 190) this.score += 0.18; // precision turn bonus
+    if (wallDist < NAVIGATION_BONUS.EDGE_DISTANCE) this.score += NAVIGATION_BONUS.EDGE_SCORE; // edge riding bonus
+    const dense = this.snake.segments.slice(NAVIGATION_BONUS.DENSE_MIN_SEGMENT).filter(s => Math.hypot(head.x - s.x, head.y - s.y) < NAVIGATION_BONUS.DENSE_RADIUS).length;
+    if (dense >= NAVIGATION_BONUS.DENSE_COUNT) this.score += NAVIGATION_BONUS.DENSE_SCORE; // tight-space navigation bonus
+    if (this.snake.turnRate > NAVIGATION_BONUS.PRECISION_TURN_RATE && this.snake.speed > NAVIGATION_BONUS.PRECISION_SPEED) this.score += NAVIGATION_BONUS.PRECISION_SCORE; // precision turn bonus
 
     this.ui.updateHUD(this);
     this.audio.setIntensity(Math.min(1, this.score / 300));
