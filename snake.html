@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Neon Snake - Premium Edition</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Background Canvas for Particles -->
+    <canvas id="bg-canvas"></canvas>
+
+    <div class="game-container">
+        <!-- Main Menu Screen -->
+        <div id="start-screen" class="screen active">
+            <div class="logo-container">
+                <h1 class="game-title">
+                    <span class="title-neon">NEON</span>
+                    <span class="title-snake">SNAKE</span>
+                </h1>
+                <div class="title-glow-effect"></div>
+            </div>
+            <p class="subtitle">Cyberpunk Edition</p>
+            <button id="hub-btn-start" class="game-btn tertiary small" style="margin-top: 1rem; margin-bottom: 1rem;" onclick="window.location.href='index.html'">
+                <span class="btn-text">← BACK TO HUB</span>
+            </button>
+            <div class="menu-buttons">
+                <button id="start-btn" class="game-btn primary">
+                    <span class="btn-text">PLAY GAME</span>
+                    <div class="btn-shine"></div>
+                    <div class="btn-particles"></div>
+                </button>
+
+                <div class="settings-row">
+                    <button id="difficulty-btn" class="game-btn secondary small">
+                        <span class="btn-text"><span id="current-difficulty">MEDIUM</span></span>
+                    </button>
+                    <button id="mode-btn" class="game-btn secondary small">
+                        <span class="btn-text"><span id="current-mode">CLASSIC</span></span>
+                    </button>
+                    <button id="theme-btn" class="game-btn tertiary small">
+                        <span class="btn-text"><span id="current-theme">CYBERPUNK</span></span>
+                    </button>
+                    <button id="sound-btn" class="game-btn icon small">
+                        <span class="btn-icon" id="sound-icon">🔊</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="stats-preview">
+                <div class="stat-box">
+                    <span class="stat-label">HIGH SCORE</span>
+                    <span id="menu-high-score" class="stat-value">0</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-label">LEVEL / XP</span>
+                    <span id="menu-level" class="stat-value">1 · 0 XP</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Screen -->
+        <div id="game-screen" class="screen">
+            <div class="hud-container">
+                <div class="hud-left">
+                    <div class="score-display glass-panel">
+                        <div class="score-info">
+                            <span class="score-label">SCORE</span>
+                            <span id="score" class="score-value">0</span>
+                        </div>
+                        <div class="combo-display" id="combo-display">
+                            <span class="combo-multiplier">x<span id="combo-mult">1</span></span>
+                            <span class="combo-timer"><div id="combo-bar"></div></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="hud-center">
+                    <div class="pause-indicator glass-panel" id="pause-indicator">
+                        <span>PAUSED</span>
+                    </div>
+                </div>
+
+                <div class="hud-right">
+                    <div class="highscore-display glass-panel">
+                        <span class="score-label">BEST</span>
+                        <span id="high-score" class="score-value">0</span>
+                    </div>
+                    <button id="pause-btn" class="icon-btn glass-panel">
+                        <svg viewBox="0 0 24 24" width="24" height="24">
+                            <rect x="6" y="4" width="4" height="16" fill="currentColor"/>
+                            <rect x="14" y="4" width="4" height="16" fill="currentColor"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="canvas-wrapper">
+                <canvas id="game-canvas"></canvas>
+                <div class="canvas-overlay" id="canvas-overlay"></div>
+            </div>
+
+            <div class="mobile-controls-hint" id="mobile-hint">
+                <span>Swipe to change direction</span>
+            </div>
+        </div>
+
+        <!-- Game Over Screen -->
+        <div id="game-over-screen" class="screen">
+            <div class="gameover-content">
+                <div class="gameover-header">
+                    <h2 class="gameover-title">GAME OVER</h2>
+                    <div class="death-reason" id="death-reason">Hit the wall!</div>
+                </div>
+
+                <div class="score-summary glass-panel large">
+                    <div class="summary-row">
+                        <span class="summary-label">FINAL SCORE</span>
+                        <span id="final-score" class="summary-value">0</span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="summary-label">BEST SCORE</span>
+                        <span id="final-high-score" class="summary-value highlight">0</span>
+                    </div>
+                    <div class="summary-row" id="new-record-row" style="display: none;">
+                        <span class="summary-label new-record">🏆 NEW RECORD!</span>
+                    </div>
+                </div>
+
+                <div class="game-stats">
+                    <div class="stat-card glass-panel">
+                        <span class="stat-card-value" id="food-eaten">0</span>
+                        <span class="stat-card-label">Food Eaten</span>
+                    </div>
+                    <div class="stat-card glass-panel">
+                        <span class="stat-card-value" id="snake-length">0</span>
+                        <span class="stat-card-label">Max Length</span>
+                    </div>
+                    <div class="stat-card glass-panel">
+                        <span class="stat-card-value" id="best-combo">x0</span>
+                        <span class="stat-card-label">Best Combo</span>
+                    </div>
+                </div>
+
+                <div class="gameover-buttons">
+                    <button id="restart-btn" class="game-btn primary large">
+                        <span class="btn-text">PLAY AGAIN</span>
+                        <div class="btn-shine"></div>
+                    </button>
+                    <button id="share-btn" class="game-btn tertiary">
+                        <span class="btn-text">SHARE SCORE</span>
+                    </button>
+                    <button id="menu-btn" class="game-btn secondary">
+                        <span class="btn-text">SNAKE MENU</span>
+                    </button>
+                    <button id="hub-btn" class="game-btn tertiary" onclick="window.location.href='index.html'">
+                        <span class="btn-text">ARCADE HUB</span>
+                    </button>
+                </div>
+                <div id="run-xp-summary" class="death-reason">+0 XP earned</div>
+            </div>
+        </div>
+
+        <!-- Difficulty Selector Modal -->
+        <div id="difficulty-modal" class="modal">
+            <div class="modal-content glass-panel">
+                <h3 class="modal-title">SELECT DIFFICULTY</h3>
+                <div class="difficulty-options">
+                    <button class="difficulty-option" data-difficulty="easy">
+                        <span class="diff-name">EASY</span>
+                        <span class="diff-desc">Relaxed pace for beginners</span>
+                    </button>
+                    <button class="difficulty-option" data-difficulty="medium">
+                        <span class="diff-name">MEDIUM</span>
+                        <span class="diff-desc">Balanced challenge</span>
+                    </button>
+                    <button class="difficulty-option" data-difficulty="hard">
+                        <span class="diff-name">HARD</span>
+                        <span class="diff-desc">Fast & unforgiving</span>
+                    </button>
+                    <button class="difficulty-option" data-difficulty="extreme">
+                        <span class="diff-name">EXTREME</span>
+                        <span class="diff-desc">Only for masters</span>
+                    </button>
+                </div>
+                <button class="modal-close" id="close-difficulty">&times;</button>
+            </div>
+        </div>
+
+        <!-- Theme Selector Modal -->
+        <div id="theme-modal" class="modal">
+            <div class="modal-content glass-panel">
+                <h3 class="modal-title">SELECT THEME</h3>
+                <div class="theme-options">
+                    <button class="theme-option" data-theme="cyberpunk">
+                        <div class="theme-preview cyberpunk"></div>
+                        <span class="theme-name">CYBERPUNK</span>
+                    </button>
+                    <button class="theme-option" data-theme="neon">
+                        <div class="theme-preview neon"></div>
+                        <span class="theme-name">NEON</span>
+                    </button>
+                    <button class="theme-option" data-theme="retro">
+                        <div class="theme-preview retro"></div>
+                        <span class="theme-name">RETRO</span>
+                    </button>
+                    <button class="theme-option" data-theme="minimal">
+                        <div class="theme-preview minimal"></div>
+                        <span class="theme-name">MINIMAL</span>
+                    </button>
+                </div>
+                <button class="modal-close" id="close-theme">&times;</button>
+            </div>
+        </div>
+
+        <div id="mode-modal" class="modal">
+            <div class="modal-content glass-panel">
+                <h3 class="modal-title">SELECT MODE</h3>
+                <div class="difficulty-options">
+                    <button class="mode-option" data-mode="classic"><span class="diff-name">CLASSIC</span><span class="diff-desc">Core endless snake run</span></button>
+                    <button class="mode-option" data-mode="timeAttack"><span class="diff-name">TIME ATTACK</span><span class="diff-desc">Max score in 90 seconds</span></button>
+                    <button class="mode-option" data-mode="survival"><span class="diff-name">ENDLESS SURVIVAL</span><span class="diff-desc">Long-form pacing challenge</span></button>
+                    <button class="mode-option" data-mode="noWalls"><span class="diff-name">NO WALLS</span><span class="diff-desc">Wrap around world edges</span></button>
+                    <button class="mode-option" data-mode="hardcore"><span class="diff-name">HARDCORE</span><span class="diff-desc">Fast speed, one mistake ends run</span></button>
+                </div>
+                <button class="modal-close" id="close-mode">&times;</button>
+            </div>
+        </div>
+
+        <!-- FPS Counter (Dev Mode) -->
+        <div id="fps-counter" class="fps-counter">
+            FPS: <span id="fps-value">60</span>
+        </div>
+        <div class="letterbox letterbox-top"></div>
+        <div class="letterbox letterbox-bottom"></div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
