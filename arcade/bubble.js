@@ -30,6 +30,7 @@ class BubbleEngine {
 
         this.movingBubble = null;
         this.particles = [];
+        this.particlePool = Array.from({ length: 250 }, () => ({ active: false, x: 0, y: 0, vx: 0, vy: 0, life: 0, color: '#000' }));
 
         this.mousePos = { x: 0, y: 0 };
         this.shotsFired = 0;
@@ -140,6 +141,7 @@ class BubbleEngine {
         this.score = 0;
         this.gridOffset = 0;
         this.shotsFired = 0;
+        this.particlePool.forEach(p => p.active = false);
         this.particles = [];
         this.movingBubble = null;
 
@@ -202,16 +204,28 @@ class BubbleEngine {
         return {r, c};
     }
 
+    getParticle() {
+        return this.particlePool.find(p => !p.active);
+    }
+
+    emitParticle(x, y, vx, vy, life, color) {
+        const p = this.getParticle();
+        if(!p) return;
+        p.active = true;
+        p.x = x; p.y = y; p.vx = vx; p.vy = vy; p.life = life; p.color = color;
+        this.particles.push(p);
+    }
+
     createExplosion(x, y, color) {
         for(let i=0; i<8; i++) {
-            this.particles.push({
-                x: x,
-                y: y,
-                vx: (Math.random() - 0.5) * 6,
-                vy: (Math.random() - 0.5) * 6,
-                life: 1,
-                color: color
-            });
+            this.emitParticle(
+                x,
+                y,
+                (Math.random() - 0.5) * 6,
+                (Math.random() - 0.5) * 6,
+                1,
+                color
+            );
         }
     }
 
@@ -383,24 +397,31 @@ class BubbleEngine {
     }
 
     updateParticles() {
-        for(let i = this.particles.length - 1; i >= 0; i--) {
-            let p = this.particles[i];
+        this.particles = this.particles.filter(p => {
             p.x += p.vx;
             p.y += p.vy;
             p.life -= 0.05;
-            if(p.life <= 0) this.particles.splice(i, 1);
-        }
+            if(p.life <= 0) {
+                p.active = false;
+                return false;
+            }
+            return true;
+        });
     }
 
     drawBackground() {
         const w = this.bgCanvas.width;
         const h = this.bgCanvas.height;
-        this.bgCtx.clearRect(0, 0, w, h);
 
-        const grad = this.bgCtx.createLinearGradient(0, 0, 0, h);
-        grad.addColorStop(0, '#120012');
-        grad.addColorStop(1, '#000000');
-        this.bgCtx.fillStyle = grad;
+        if(!this.cachedBgGradient || this.cachedBgWidth !== w || this.cachedBgHeight !== h) {
+            this.cachedBgGradient = this.bgCtx.createLinearGradient(0, 0, 0, h);
+            this.cachedBgGradient.addColorStop(0, '#120012');
+            this.cachedBgGradient.addColorStop(1, '#000000');
+            this.cachedBgWidth = w;
+            this.cachedBgHeight = h;
+        }
+
+        this.bgCtx.fillStyle = this.cachedBgGradient;
         this.bgCtx.fillRect(0, 0, w, h);
     }
 

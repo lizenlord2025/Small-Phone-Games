@@ -27,14 +27,16 @@ class HubRenderer {
         const w = this.canvas.width;
         const h = this.canvas.height;
 
-        ctx.clearRect(0, 0, w, h);
-
         // Dynamic background gradient
-        const grad = ctx.createLinearGradient(0, 0, w, h);
-        grad.addColorStop(0, '#060915');
-        grad.addColorStop(0.5, '#13072f');
-        grad.addColorStop(1, '#000000');
-        ctx.fillStyle = grad;
+        if (!this.cachedGrad || this.cachedWidth !== w || this.cachedHeight !== h) {
+            this.cachedGrad = ctx.createLinearGradient(0, 0, w, h);
+            this.cachedGrad.addColorStop(0, '#060915');
+            this.cachedGrad.addColorStop(0.5, '#13072f');
+            this.cachedGrad.addColorStop(1, '#000000');
+            this.cachedWidth = w;
+            this.cachedHeight = h;
+        }
+        ctx.fillStyle = this.cachedGrad;
         ctx.fillRect(0, 0, w, h);
 
         // Grid lines

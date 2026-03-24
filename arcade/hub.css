@@ -2,6 +2,7 @@
   --neon-blue: #00f7ff;
   --neon-green: #37ff00;
   --neon-pink: #ff00ff;
+  --neon-yellow: #ffea00;
   --bg-dark: #060915;
   --bg-darker: #000000;
   --text-primary: #f5fbff;
@@ -119,6 +120,7 @@ body {
 .card-glow.neon-blue { background: var(--neon-blue); }
 .card-glow.neon-green { background: var(--neon-green); }
 .card-glow.neon-pink { background: var(--neon-pink); }
+.card-glow.neon-yellow { background: var(--neon-yellow); }
 
 .card-content {
   position: relative;
@@ -148,7 +150,7 @@ body {
 .game-card:nth-child(1):hover .game-icon { border-color: var(--neon-blue); color: var(--neon-blue); box-shadow: 0 0 20px rgba(0,247,255,0.4); }
 .game-card:nth-child(2):hover .game-icon { border-color: var(--neon-green); color: var(--neon-green); box-shadow: 0 0 20px rgba(55,255,0,0.4); }
 .game-card:nth-child(3):hover .game-icon { border-color: var(--neon-pink); color: var(--neon-pink); box-shadow: 0 0 20px rgba(255,0,255,0.4); }
-
+.game-card:nth-child(4):hover .game-icon { border-color: var(--neon-yellow); color: var(--neon-yellow); box-shadow: 0 0 20px rgba(255,234,0,0.4); }
 
 .game-icon svg {
   width: 40px;
