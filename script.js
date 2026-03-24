@@ -1014,7 +1014,13 @@ class GameEngine {
   }
 }
 
-window.addEventListener('DOMContentLoaded', () => {
-  // eslint-disable-next-line no-new
-  new GameEngine();
-});
+if (typeof window !== 'undefined') {
+  window.addEventListener('DOMContentLoaded', () => {
+    // eslint-disable-next-line no-new
+    new GameEngine();
+  });
+}
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = { SnakeSystem };
+}
