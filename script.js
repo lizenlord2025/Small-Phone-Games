@@ -295,7 +295,9 @@ class SnakeSystem {
       const cur = this.segments[i];
       const dx = prev.x - cur.x;
       const dy = prev.y - cur.y;
-      const d = Math.hypot(dx, dy) || 1;
+      const dSq = dx * dx + dy * dy;
+      if (dSq === 0) continue;
+      const d = Math.sqrt(dSq);
       const desired = this.segmentDistance;
       const delay = Math.max(0.17, 0.34 - i * 0.004);
       const pull = (d - desired) * delay;
@@ -317,13 +319,16 @@ class SnakeSystem {
   grow(n = 4) { this.growth += n; }
   collidesWithSelf() {
     const h = this.segments[0];
-    return this.segments.slice(9).some(s => Math.hypot(h.x - s.x, h.y - s.y) < this.segmentDistance * 0.68);
+    const thresholdSq = (this.segmentDistance * 0.68) ** 2;
+    return this.segments.slice(9).some(s => ((h.x - s.x)**2 + (h.y - s.y)**2) < thresholdSq);
   }
   nearMissRisk() {
     const h = this.segments[0];
+    const lowerSq = (this.segmentDistance * 0.75) ** 2;
+    const upperSq = (this.segmentDistance * 1.2) ** 2;
     return this.segments.slice(8).some(s => {
-      const d = Math.hypot(h.x - s.x, h.y - s.y);
-      return d > this.segmentDistance * 0.75 && d < this.segmentDistance * 1.2;
+      const dSq = (h.x - s.x)**2 + (h.y - s.y)**2;
+      return dSq > lowerSq && dSq < upperSq;
     });
   }
   collidesWall() {
@@ -349,7 +354,8 @@ class FoodSystem {
   spawn(bounds, snakeSegments, danger = false) {
     let p = this.randomPoint(bounds);
     let loops = 0;
-    while (snakeSegments.some(s => Math.hypot(s.x - p.x, s.y - p.y) < 52) && loops < 100) {
+    const threshSq = 52 * 52;
+    while (snakeSegments.some(s => ((s.x - p.x)**2 + (s.y - p.y)**2) < threshSq) && loops < 100) {
       p = this.randomPoint(bounds);
       loops += 1;
     }
@@ -390,6 +396,12 @@ class Renderer {
     this.canvas.style.height = `${size}px`;
     this.bgCanvas.width = window.innerWidth;
     this.bgCanvas.height = window.innerHeight;
+
+    // Cache background gradient to avoid recreation on every frame
+    this.cachedBgGradient = null;
+    this.cachedBgWidth = 0;
+    this.cachedBgHeight = 0;
+    this.cachedBgTheme = null;
   }
   pulseShake(v = 8) { this.shake = Math.max(this.shake, v); }
   drawBackground(time, score) {
@@ -397,11 +409,18 @@ class Renderer {
     const w = this.bgCanvas.width;
     const h = this.bgCanvas.height;
     const theme = this.getTheme();
-    const grad = ctx.createLinearGradient(0, 0, w, h);
-    grad.addColorStop(0, theme.bg[0]);
-    grad.addColorStop(0.5, theme.bg[1]);
-    grad.addColorStop(1, theme.bg[2]);
-    ctx.fillStyle = grad;
+
+    if (!this.cachedBgGradient || this.cachedBgWidth !== w || this.cachedBgHeight !== h || this.cachedBgTheme !== theme) {
+      this.cachedBgGradient = ctx.createLinearGradient(0, 0, w, h);
+      this.cachedBgGradient.addColorStop(0, theme.bg[0]);
+      this.cachedBgGradient.addColorStop(0.5, theme.bg[1]);
+      this.cachedBgGradient.addColorStop(1, theme.bg[2]);
+      this.cachedBgWidth = w;
+      this.cachedBgHeight = h;
+      this.cachedBgTheme = theme;
+    }
+
+    ctx.fillStyle = this.cachedBgGradient;
     ctx.fillRect(0, 0, w, h);
 
     for (const p of this.layers) {
@@ -413,10 +432,14 @@ class Renderer {
       ctx.fill();
     }
 
-    const vignette = ctx.createRadialGradient(w * 0.5, h * 0.5, h * 0.15, w * 0.5, h * 0.5, h * 0.75);
-    vignette.addColorStop(0, 'rgba(120,180,255,0.09)');
-    vignette.addColorStop(1, 'rgba(0,0,0,0.65)');
-    ctx.fillStyle = vignette;
+    if (!this.cachedVignette || this.cachedVignetteWidth !== w || this.cachedVignetteHeight !== h) {
+      this.cachedVignette = ctx.createRadialGradient(w * 0.5, h * 0.5, h * 0.15, w * 0.5, h * 0.5, h * 0.75);
+      this.cachedVignette.addColorStop(0, 'rgba(120,180,255,0.09)');
+      this.cachedVignette.addColorStop(1, 'rgba(0,0,0,0.65)');
+      this.cachedVignetteWidth = w;
+      this.cachedVignetteHeight = h;
+    }
+    ctx.fillStyle = this.cachedVignette;
     ctx.fillRect(0, 0, w, h);
 
     const hue = (time * 0.01 + Math.min(140, score * 0.8)) % 360;
@@ -449,10 +472,14 @@ class Renderer {
     ctx.scale(this.zoom, this.zoom);
     ctx.translate(-this.canvas.width / 2, -this.canvas.height / 2);
 
-    const bg = ctx.createLinearGradient(0, 0, this.canvas.width, this.canvas.height);
-    bg.addColorStop(0, 'rgba(10,15,35,0.7)');
-    bg.addColorStop(1, 'rgba(3,4,10,0.82)');
-    ctx.fillStyle = bg;
+    if (!this.cachedStateBg || this.cachedStateBgWidth !== this.canvas.width || this.cachedStateBgHeight !== this.canvas.height) {
+      this.cachedStateBg = ctx.createLinearGradient(0, 0, this.canvas.width, this.canvas.height);
+      this.cachedStateBg.addColorStop(0, 'rgba(10,15,35,0.7)');
+      this.cachedStateBg.addColorStop(1, 'rgba(3,4,10,0.82)');
+      this.cachedStateBgWidth = this.canvas.width;
+      this.cachedStateBgHeight = this.canvas.height;
+    }
+    ctx.fillStyle = this.cachedStateBg;
     ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
     for (const t of snake.trail) {
@@ -470,11 +497,16 @@ class Renderer {
 
     this.drawGhost(state.ghost);
 
-    const grad = ctx.createLinearGradient(0, 0, this.canvas.width, this.canvas.height);
-    grad.addColorStop(0, theme.body[0]);
-    grad.addColorStop(0.5, theme.body[1]);
-    grad.addColorStop(1, theme.body[2]);
-    ctx.strokeStyle = grad;
+    if (!this.cachedSnakeGrad || this.cachedSnakeGradWidth !== this.canvas.width || this.cachedSnakeGradHeight !== this.canvas.height || this.cachedSnakeGradTheme !== theme) {
+      this.cachedSnakeGrad = ctx.createLinearGradient(0, 0, this.canvas.width, this.canvas.height);
+      this.cachedSnakeGrad.addColorStop(0, theme.body[0]);
+      this.cachedSnakeGrad.addColorStop(0.5, theme.body[1]);
+      this.cachedSnakeGrad.addColorStop(1, theme.body[2]);
+      this.cachedSnakeGradWidth = this.canvas.width;
+      this.cachedSnakeGradHeight = this.canvas.height;
+      this.cachedSnakeGradTheme = theme;
+    }
+    ctx.strokeStyle = this.cachedSnakeGrad;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
     ctx.shadowColor = theme.body[0];
@@ -516,7 +548,7 @@ class Renderer {
   }
   drawFood(food, time, head) {
     const ctx = this.ctx;
-    const distance = head ? Math.hypot(head.x - food.x, head.y - food.y) : 240;
+    const distance = head ? Math.sqrt((head.x - food.x)**2 + (head.y - food.y)**2) : 240;
     const anticipation = Math.max(0, 1 - distance / 240);
     const pulse = 1 + Math.sin(time * 0.006) * 0.18 + anticipation * 0.2;
     ctx.save();
@@ -929,8 +961,8 @@ class GameEngine {
 
     if (!this.foodSystem.powerup && Math.random() < dt * 0.12) this.foodSystem.spawnPowerup({ w: this.canvas.width, h: this.canvas.height });
 
-    if (this.foodSystem.food && Math.hypot(head.x - this.foodSystem.food.x, head.y - this.foodSystem.food.y) < 18) this.consumeFood();
-    if (this.foodSystem.powerup && Math.hypot(head.x - this.foodSystem.powerup.x, head.y - this.foodSystem.powerup.y) < 20) this.consumePowerup();
+    if (this.foodSystem.food && ((head.x - this.foodSystem.food.x)**2 + (head.y - this.foodSystem.food.y)**2) < 324) this.consumeFood();
+    if (this.foodSystem.powerup && ((head.x - this.foodSystem.powerup.x)**2 + (head.y - this.foodSystem.powerup.y)**2) < 400) this.consumePowerup();
 
     this.comboTimer -= dt;
     if (this.comboTimer <= 0) this.combo = 1;
@@ -940,7 +972,8 @@ class GameEngine {
 
     const wallDist = Math.min(head.x, head.y, this.canvas.width - head.x, this.canvas.height - head.y);
     if (wallDist < NAVIGATION_BONUS.EDGE_DISTANCE) this.score += NAVIGATION_BONUS.EDGE_SCORE; // edge riding bonus
-    const dense = this.snake.segments.slice(NAVIGATION_BONUS.DENSE_MIN_SEGMENT).filter(s => Math.hypot(head.x - s.x, head.y - s.y) < NAVIGATION_BONUS.DENSE_RADIUS).length;
+    const denseRadSq = NAVIGATION_BONUS.DENSE_RADIUS ** 2;
+    const dense = this.snake.segments.slice(NAVIGATION_BONUS.DENSE_MIN_SEGMENT).filter(s => ((head.x - s.x)**2 + (head.y - s.y)**2) < denseRadSq).length;
     if (dense >= NAVIGATION_BONUS.DENSE_COUNT) this.score += NAVIGATION_BONUS.DENSE_SCORE; // tight-space navigation bonus
     if (this.snake.turnRate > NAVIGATION_BONUS.PRECISION_TURN_RATE && this.snake.speed > NAVIGATION_BONUS.PRECISION_SPEED) this.score += NAVIGATION_BONUS.PRECISION_SCORE; // precision turn bonus
 
