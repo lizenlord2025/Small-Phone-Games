@@ -32,6 +32,9 @@ class BubbleEngine {
         this.particles = [];
         this.particlePool = Array.from({ length: 250 }, () => ({ active: false, x: 0, y: 0, vx: 0, vy: 0, life: 0, color: '#000' }));
 
+        this.bgParticles = [];
+        this.mouse = { x: null, y: null, radius: 150 };
+
         this.mousePos = { x: 0, y: 0 };
         this.shotsFired = 0;
 
@@ -64,6 +67,21 @@ class BubbleEngine {
         this.radius = Math.min(16, (width / (this.cols + 0.5)) / 2);
         this.diameter = this.radius * 2;
         this.hexRadius = this.radius * Math.sqrt(3) / 2;
+        this.initBgParticles();
+    }
+
+    initBgParticles() {
+        this.bgParticles = [];
+        const numParticles = Math.floor((this.bgCanvas.width * this.bgCanvas.height) / 9000);
+        for (let i = 0; i < numParticles; i++) {
+            this.bgParticles.push({
+                x: Math.random() * this.bgCanvas.width,
+                y: Math.random() * this.bgCanvas.height,
+                vx: (Math.random() - 0.5) * 0.5,
+                vy: (Math.random() - 0.5) * 0.5,
+                size: Math.random() * 2 + 1
+            });
+        }
     }
 
     initInput() {
@@ -114,6 +132,15 @@ class BubbleEngine {
         this.canvas.addEventListener('touchmove', moveHandler, {passive: false});
         this.canvas.addEventListener('mousedown', shootHandler);
         this.canvas.addEventListener('touchstart', shootHandler, {passive: false});
+
+        window.addEventListener('mousemove', (e) => {
+            this.mouse.x = e.clientX;
+            this.mouse.y = e.clientY;
+        });
+        window.addEventListener('mouseout', () => {
+            this.mouse.x = null;
+            this.mouse.y = null;
+        });
     }
 
     initUI() {
@@ -423,6 +450,50 @@ class BubbleEngine {
 
         this.bgCtx.fillStyle = this.cachedBgGradient;
         this.bgCtx.fillRect(0, 0, w, h);
+
+        this.bgCtx.fillStyle = '#0f0';
+        this.bgCtx.strokeStyle = '#0f0';
+
+        for (let i = 0; i < this.bgParticles.length; i++) {
+            const p = this.bgParticles[i];
+
+            p.x += p.vx;
+            p.y += p.vy;
+
+            if (p.x < 0 || p.x > w) p.vx *= -1;
+            if (p.y < 0 || p.y > h) p.vy *= -1;
+
+            if (this.mouse.x != null && this.mouse.y != null) {
+                const dx = this.mouse.x - p.x;
+                const dy = this.mouse.y - p.y;
+                const distSq = dx * dx + dy * dy;
+                if (distSq < this.mouse.radius * this.mouse.radius) {
+                    const force = (this.mouse.radius - Math.sqrt(distSq)) / this.mouse.radius;
+                    p.x -= dx * force * 0.05;
+                    p.y -= dy * force * 0.05;
+                }
+            }
+
+            this.bgCtx.beginPath();
+            this.bgCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            this.bgCtx.fill();
+
+            for (let j = i + 1; j < this.bgParticles.length; j++) {
+                const p2 = this.bgParticles[j];
+                const dx = p.x - p2.x;
+                const dy = p.y - p2.y;
+                const distSq = dx * dx + dy * dy;
+
+                if (distSq < 15000) {
+                    this.bgCtx.globalAlpha = 1 - (distSq / 15000);
+                    this.bgCtx.beginPath();
+                    this.bgCtx.moveTo(p.x, p.y);
+                    this.bgCtx.lineTo(p2.x, p2.y);
+                    this.bgCtx.stroke();
+                }
+            }
+        }
+        this.bgCtx.globalAlpha = 1.0;
     }
 
     drawBubble(x, y, color, scale = 1) {
