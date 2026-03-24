@@ -13,6 +13,25 @@ const STORAGE_KEYS = {
   progression: 'neonSnake.progression',
   cosmetics: 'neonSnake.cosmetics'
 };
+
+const safeStorage = {
+  get(key) {
+    try {
+      return localStorage.getItem(key);
+    } catch (e) {
+      console.warn('localStorage.get failed:', e);
+      return null;
+    }
+  },
+  set(key, value) {
+    try {
+      localStorage.setItem(key, value);
+    } catch (e) {
+      console.warn('localStorage.set failed:', e);
+    }
+  }
+};
+
 const GAME_MODES = {
   classic: { label: 'CLASSIC', wrap: false, timeLimit: 0, speedBoost: 0 },
   timeAttack: { label: 'TIME ATTACK', wrap: false, timeLimit: 90, speedBoost: 8 },
@@ -648,11 +667,11 @@ class GameEngine {
     this.foodCount = 0;
     this.bestCombo = 1;
     this.survivalTime = 0;
-    this.highScore = Number(localStorage.getItem(STORAGE_KEYS.highScore) || 0);
-    this.stats = JSON.parse(localStorage.getItem(STORAGE_KEYS.stats) || '{"games":0,"totalScore":0,"bestSurvival":0}');
-    this.progression = JSON.parse(localStorage.getItem(STORAGE_KEYS.progression) || '{"xp":0,"level":1}');
-    this.cosmetics = JSON.parse(localStorage.getItem(STORAGE_KEYS.cosmetics) || '{"skin":"default","trail":"neon","unlockedSkins":["default"],"unlockedTrails":["neon"]}');
-    this.ghostPath = JSON.parse(localStorage.getItem(STORAGE_KEYS.ghost) || '[]');
+    this.highScore = Number(safeStorage.get(STORAGE_KEYS.highScore) || 0);
+    this.stats = JSON.parse(safeStorage.get(STORAGE_KEYS.stats) || '{"games":0,"totalScore":0,"bestSurvival":0}');
+    this.progression = JSON.parse(safeStorage.get(STORAGE_KEYS.progression) || '{"xp":0,"level":1}');
+    this.cosmetics = JSON.parse(safeStorage.get(STORAGE_KEYS.cosmetics) || '{"skin":"default","trail":"neon","unlockedSkins":["default"],"unlockedTrails":["neon"]}');
+    this.ghostPath = JSON.parse(safeStorage.get(STORAGE_KEYS.ghost) || '[]');
     this.currentPath = [];
     this.achieved = new Set();
     this.elapsed = 0;
@@ -736,10 +755,10 @@ class GameEngine {
   }
 
   loadSettings() {
-    const s = JSON.parse(localStorage.getItem(STORAGE_KEYS.settings) || '{}');
+    const s = JSON.parse(safeStorage.get(STORAGE_KEYS.settings) || '{}');
     return { difficulty: s.difficulty || 'medium', theme: s.theme || 'cyberpunk', mode: s.mode || 'classic' };
   }
-  persistSettings() { localStorage.setItem(STORAGE_KEYS.settings, JSON.stringify(this.settings)); }
+  persistSettings() { safeStorage.set(STORAGE_KEYS.settings, JSON.stringify(this.settings)); }
   applyTheme(theme) {
     this.theme = theme;
     this.settings.theme = theme;
@@ -781,9 +800,9 @@ class GameEngine {
     document.body.classList.add('cinematic');
     setTimeout(() => document.body.classList.remove('cinematic'), 1100);
 
-    if (!localStorage.getItem('neonSnake.onboarded')) {
+    if (!safeStorage.get('neonSnake.onboarded')) {
       this.ui.flash('Swipe / WASD / Arrows', window.innerWidth * 0.5 - 70, window.innerHeight * 0.7, 'floating-points onboarding');
-      localStorage.setItem('neonSnake.onboarded', '1');
+      safeStorage.set('neonSnake.onboarded', '1');
     }
   }
   toMenu() {
@@ -957,22 +976,22 @@ class GameEngine {
     this.particles.burst(this.snake.head.x, this.snake.head.y, '#b8ffff', 80, 1.7);
     const prevHigh = this.highScore;
     this.highScore = Math.max(this.highScore, Math.floor(this.score));
-    localStorage.setItem(STORAGE_KEYS.highScore, String(this.highScore));
+    safeStorage.set(STORAGE_KEYS.highScore, String(this.highScore));
 
     this.stats.games += 1;
     this.stats.totalScore += Math.floor(this.score);
     this.stats.bestSurvival = Math.max(this.stats.bestSurvival, this.survivalTime);
-    localStorage.setItem(STORAGE_KEYS.stats, JSON.stringify(this.stats));
+    safeStorage.set(STORAGE_KEYS.stats, JSON.stringify(this.stats));
 
     if (Math.floor(this.score) >= prevHigh && this.currentPath.length > 50) {
       this.ghostPath = this.currentPath.slice();
-      localStorage.setItem(STORAGE_KEYS.ghost, JSON.stringify(this.ghostPath));
+      safeStorage.set(STORAGE_KEYS.ghost, JSON.stringify(this.ghostPath));
     }
 
-    const lb = JSON.parse(localStorage.getItem(STORAGE_KEYS.leaderboard) || '[]');
+    const lb = JSON.parse(safeStorage.get(STORAGE_KEYS.leaderboard) || '[]');
     lb.push({ score: Math.floor(this.score), date: new Date().toISOString() });
     lb.sort((a, b) => b.score - a.score);
-    localStorage.setItem(STORAGE_KEYS.leaderboard, JSON.stringify(lb.slice(0, 7)));
+    safeStorage.set(STORAGE_KEYS.leaderboard, JSON.stringify(lb.slice(0, 7)));
 
     this.ui.gameOver({
       score: Math.floor(this.score),
@@ -999,8 +1018,8 @@ class GameEngine {
     this.progression.level = level;
     for (const s of SKINS) if (level >= s.minLevel && !this.cosmetics.unlockedSkins.includes(s.key)) this.cosmetics.unlockedSkins.push(s.key);
     for (const t of TRAILS) if (level >= t.minLevel && !this.cosmetics.unlockedTrails.includes(t.key)) this.cosmetics.unlockedTrails.push(t.key);
-    localStorage.setItem(STORAGE_KEYS.progression, JSON.stringify(this.progression));
-    localStorage.setItem(STORAGE_KEYS.cosmetics, JSON.stringify(this.cosmetics));
+    safeStorage.set(STORAGE_KEYS.progression, JSON.stringify(this.progression));
+    safeStorage.set(STORAGE_KEYS.cosmetics, JSON.stringify(this.cosmetics));
     return xpEarned;
   }
 
