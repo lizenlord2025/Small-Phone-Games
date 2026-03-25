@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Neon Memory - Premium Edition</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="memory.css">
+</head>
+<body class="theme-neon">
+    <!-- Background for consistency -->
+    <div id="bg-effect"></div>
+
+    <div class="game-container">
+        <!-- Main Menu Screen -->
+        <div id="start-screen" class="screen active">
+            <div class="logo-container">
+                <h1 class="game-title">
+                    <span class="title-neon">NEON</span>
+                    <span class="title-snake">MEMORY</span>
+                </h1>
+                <div class="title-glow-effect"></div>
+            </div>
+            <p class="subtitle">Emoji Matcher</p>
+
+            <div class="menu-buttons">
+                <button id="start-btn" class="game-btn primary">
+                    <span class="btn-text">START MATCHING</span>
+                </button>
+
+                <div class="settings-row">
+                    <button id="difficulty-btn" class="game-btn secondary small">
+                        <span id="current-difficulty">MEDIUM</span>
+                    </button>
+                    <button id="theme-btn" class="game-btn tertiary small">
+                        <span id="current-theme">NEON</span>
+                    </button>
+                    <button id="back-to-snake" class="game-btn icon small">
+                        🐍
+                    </button>
+                </div>
+            </div>
+
+            <div class="stats-preview">
+                <div class="stat-box">
+                    <span class="stat-label">BEST MOVES</span>
+                    <span id="best-moves" class="stat-value">-</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Screen -->
+        <div id="game-screen" class="screen">
+            <div class="hud-container">
+                <div class="hud-left">
+                    <div class="stat-display glass-panel">
+                        <span class="stat-label">MOVES</span>
+                        <span id="moves-count" class="stat-value">0</span>
+                    </div>
+                </div>
+
+                <div class="hud-center">
+                    <div class="stat-display glass-panel">
+                        <span class="stat-label">REMAINING</span>
+                        <span id="moves-left" class="stat-value">-</span>
+                    </div>
+                </div>
+
+                <div class="hud-right">
+                    <button id="quit-btn" class="icon-btn glass-panel">
+                        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="3">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <div id="game-grid" class="game-grid">
+                <!-- Cards injected here -->
+            </div>
+        </div>
+
+        <!-- Win/Loss Modals -->
+        <div id="result-modal" class="modal">
+            <div class="modal-content glass-panel">
+                <h2 id="result-title" class="modal-title">YOU HAVE WON!</h2>
+                <div class="result-stats">
+                    <div class="stat-row">
+                        <span>Total Moves:</span>
+                        <span id="final-moves" class="highlight">0</span>
+                    </div>
+                    <div class="stat-row">
+                        <span>Difficulty:</span>
+                        <span id="final-diff">MEDIUM</span>
+                    </div>
+                </div>
+                <div class="modal-buttons">
+                    <button id="play-again-btn" class="game-btn primary">PLAY AGAIN</button>
+                    <button id="menu-btn" class="game-btn secondary">MENU</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Difficulty Selector -->
+        <div id="difficulty-modal" class="modal">
+            <div class="modal-content glass-panel">
+                <h3 class="modal-title">DIFFICULTY</h3>
+                <div class="options-grid">
+                    <button class="diff-option" data-diff="easy">
+                        <span class="opt-name">EASY</span>
+                        <span class="opt-desc">Small grid, plenty of moves</span>
+                    </button>
+                    <button class="diff-option active" data-diff="medium">
+                        <span class="opt-name">MEDIUM</span>
+                        <span class="opt-desc">Moderate grid & challenge</span>
+                    </button>
+                    <button class="diff-option" data-diff="hard">
+                        <span class="opt-name">HARD</span>
+                        <span class="opt-desc">Large grid, limited moves</span>
+                    </button>
+                </div>
+                <button class="modal-close">&times;</button>
+            </div>
+        </div>
+
+        <!-- Theme Selector -->
+        <div id="theme-modal" class="modal">
+            <div class="modal-content glass-panel">
+                <h3 class="modal-title">SELECT THEME</h3>
+                <div class="options-grid horizontal">
+                    <button class="theme-option active" data-theme="neon">NEON</button>
+                    <button class="theme-option" data-theme="minimalist">MINIMALIST</button>
+                </div>
+                <button class="modal-close">&times;</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="memory.js"></script>
+</body>
+</html>
