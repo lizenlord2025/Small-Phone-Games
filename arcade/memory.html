@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Memory Card - Neon Arcade</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="memory.css">
+</head>
+<body class="theme-neon">
+    <!-- Background Canvas (for Neon theme) -->
+    <canvas id="bg-canvas"></canvas>
+
+    <div class="game-container">
+        <header class="game-header">
+            <a href="index.html" class="back-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                HUB
+            </a>
+            <div class="score-board">
+                <div class="stat-box">
+                    <span class="stat-label">MOVES LEFT</span>
+                    <span id="moves-left" class="stat-value">0</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-label">PAIRS</span>
+                    <span id="pairs-matched" class="stat-value">0/0</span>
+                </div>
+            </div>
+            <div class="controls-group">
+                <select id="level-select" class="game-select">
+                    <option value="easy">Easy</option>
+                    <option value="medium">Medium</option>
+                    <option value="hard">Hard</option>
+                </select>
+                <select id="theme-select" class="game-select">
+                    <option value="neon">Neon</option>
+                    <option value="minimalistic">Minimal</option>
+                </select>
+            </div>
+        </header>
+
+        <main class="memory-board-container">
+            <div id="memory-board" class="memory-board">
+                <!-- Cards will be generated here -->
+            </div>
+        </main>
+
+        <!-- Modals -->
+        <div id="game-over-modal" class="modal hidden">
+            <div class="modal-content">
+                <h2 id="modal-title" class="modal-title">You Won!</h2>
+                <p id="modal-message" class="modal-message">Great job completing the level.</p>
+                <div class="modal-stats">
+                    <p>Moves Used: <span id="final-moves"></span></p>
+                </div>
+                <button id="restart-btn" class="modal-btn">PLAY AGAIN</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="memory.js"></script>
+</body>
+</html>
