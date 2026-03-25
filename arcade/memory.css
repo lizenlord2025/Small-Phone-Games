@@ -1,0 +1,371 @@
+:root {
+  /* Neon Theme Colors */
+  --neon-bg: #060915;
+  --neon-bg-darker: #000000;
+  --neon-text: #f5fbff;
+  --neon-text-secondary: #90a3be;
+  --neon-accent: #00f7ff;
+  --neon-accent-alt: #ff00ff;
+  --neon-card-bg: rgba(255, 255, 255, 0.04);
+  --neon-card-border: rgba(255, 255, 255, 0.08);
+  --neon-card-hover: rgba(0, 247, 255, 0.1);
+  --neon-card-matched: rgba(55, 255, 0, 0.2);
+  --neon-card-error: rgba(255, 0, 0, 0.2);
+
+  /* Minimal Theme Colors */
+  --min-bg: #fafafa;
+  --min-bg-darker: #eeeeee;
+  --min-text: #2c3e50;
+  --min-text-secondary: #7f8c8d;
+  --min-accent: #3498db;
+  --min-accent-alt: #e74c3c;
+  --min-card-bg: #ffffff;
+  --min-card-border: #bdc3c7;
+  --min-card-hover: #ecf0f1;
+  --min-card-matched: #2ecc71;
+  --min-card-error: #e74c3c;
+
+  /* Current Theme Variables (Default Neon) */
+  --theme-bg: var(--neon-bg);
+  --theme-bg-darker: var(--neon-bg-darker);
+  --theme-text: var(--neon-text);
+  --theme-text-secondary: var(--neon-text-secondary);
+  --theme-accent: var(--neon-accent);
+  --theme-accent-alt: var(--neon-accent-alt);
+  --theme-card-bg: var(--neon-card-bg);
+  --theme-card-border: var(--neon-card-border);
+  --theme-card-hover: var(--neon-card-hover);
+  --theme-card-matched: var(--neon-card-matched);
+  --theme-card-error: var(--neon-card-error);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Poppins', sans-serif;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: var(--theme-text);
+  background: linear-gradient(135deg, var(--theme-bg), var(--theme-bg-darker));
+  overflow-x: hidden;
+  transition: background 0.5s ease, color 0.5s ease;
+}
+
+body.theme-minimalistic {
+  --theme-bg: var(--min-bg);
+  --theme-bg-darker: var(--min-bg-darker);
+  --theme-text: var(--min-text);
+  --theme-text-secondary: var(--min-text-secondary);
+  --theme-accent: var(--min-accent);
+  --theme-accent-alt: var(--min-accent-alt);
+  --theme-card-bg: var(--min-card-bg);
+  --theme-card-border: var(--min-card-border);
+  --theme-card-hover: var(--min-card-hover);
+  --theme-card-matched: var(--min-card-matched);
+  --theme-card-error: var(--min-card-error);
+}
+
+#bg-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+body.theme-minimalistic #bg-canvas {
+  display: none;
+}
+
+.game-container {
+  position: relative;
+  z-index: 1;
+  width: min(900px, 95vw);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1rem 0;
+  align-items: center;
+}
+
+.game-header {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--theme-card-bg);
+  border: 1px solid var(--theme-card-border);
+  border-radius: 20px;
+  padding: 1rem 1.5rem;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+body.theme-neon .game-header {
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+}
+body.theme-minimalistic .game-header {
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.back-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--theme-text-secondary);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.9rem;
+  letter-spacing: 0.1em;
+  transition: color 0.3s ease;
+}
+.back-btn:hover {
+  color: var(--theme-accent);
+}
+.back-btn svg { width: 20px; height: 20px; }
+
+.score-board {
+  display: flex;
+  gap: 2rem;
+}
+
+.stat-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.stat-label {
+  font-size: 0.7rem;
+  color: var(--theme-text-secondary);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--theme-accent);
+}
+body.theme-neon .stat-value {
+  text-shadow: 0 0 10px var(--theme-accent);
+}
+
+.controls-group {
+  display: flex;
+  gap: 1rem;
+}
+
+.game-select {
+  background: var(--theme-card-bg);
+  color: var(--theme-text);
+  border: 1px solid var(--theme-card-border);
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.3s ease;
+}
+body.theme-neon .game-select option {
+  background-color: var(--neon-bg);
+  color: var(--neon-text);
+}
+body.theme-minimalistic .game-select option {
+  background-color: var(--min-bg);
+  color: var(--min-text);
+}
+.game-select:hover {
+  border-color: var(--theme-accent);
+}
+
+.memory-board-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  perspective: 1000px;
+}
+
+.memory-board {
+  display: grid;
+  gap: 10px;
+  width: 100%;
+  max-width: 800px;
+  justify-content: center;
+}
+
+/* Card Styles */
+.card {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3/4;
+  cursor: pointer;
+  transform-style: preserve-3d;
+  transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.card.flipped, .card.matched {
+  transform: rotateY(180deg);
+}
+
+.card-face {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  border-radius: 12px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 2.5rem;
+  user-select: none;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  transition: all 0.3s ease;
+}
+
+.card-front {
+  background: var(--theme-card-bg);
+  border: 2px solid var(--theme-card-border);
+  transform: rotateY(0deg);
+}
+body.theme-neon .card-front {
+  background: rgba(255,255,255,0.05);
+  border: 2px solid rgba(0, 247, 255, 0.3);
+}
+
+.card-front::after {
+  content: '?';
+  color: var(--theme-text-secondary);
+  font-size: 3rem;
+  font-weight: 700;
+  opacity: 0.5;
+}
+body.theme-neon .card-front::after {
+  color: var(--neon-accent);
+  text-shadow: 0 0 10px var(--neon-accent);
+}
+
+.card:hover .card-front {
+  background: var(--theme-card-hover);
+  border-color: var(--theme-accent);
+}
+
+.card-back {
+  background: var(--theme-card-bg);
+  border: 2px solid var(--theme-accent);
+  transform: rotateY(180deg);
+}
+body.theme-neon .card-back {
+  background: rgba(0, 247, 255, 0.1);
+  box-shadow: inset 0 0 20px rgba(0, 247, 255, 0.2);
+}
+
+.card.matched .card-back {
+  background: var(--theme-card-matched);
+  border-color: #2ecc71; /* Greenish */
+}
+body.theme-neon .card.matched .card-back {
+  box-shadow: 0 0 15px rgba(55, 255, 0, 0.5);
+  border-color: var(--neon-green, #37ff00);
+}
+
+/* Modal Styles */
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(5px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.modal.hidden {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.modal-content {
+  background: var(--theme-card-bg);
+  border: 1px solid var(--theme-card-border);
+  padding: 3rem;
+  border-radius: 20px;
+  text-align: center;
+  transform: scale(1);
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+body.theme-neon .modal-content {
+  box-shadow: 0 0 30px rgba(0, 247, 255, 0.2);
+}
+
+.modal.hidden .modal-content {
+  transform: scale(0.8);
+}
+
+.modal-title {
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+  color: var(--theme-accent);
+}
+body.theme-neon .modal-title {
+  text-shadow: 0 0 10px var(--theme-accent);
+}
+body.theme-neon .modal-title.win {
+  color: #37ff00;
+  text-shadow: 0 0 10px #37ff00;
+}
+body.theme-neon .modal-title.lose {
+  color: #ff0055;
+  text-shadow: 0 0 10px #ff0055;
+}
+
+.modal-message {
+  color: var(--theme-text-secondary);
+  margin-bottom: 1.5rem;
+}
+
+.modal-stats {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 2rem;
+}
+
+.modal-btn {
+  background: transparent;
+  color: var(--theme-accent);
+  border: 2px solid var(--theme-accent);
+  padding: 1rem 2.5rem;
+  border-radius: 30px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  letter-spacing: 0.1em;
+  transition: all 0.3s ease;
+}
+
+.modal-btn:hover {
+  background: var(--theme-accent);
+  color: var(--theme-bg-darker);
+}
+body.theme-neon .modal-btn:hover {
+  box-shadow: 0 0 20px var(--theme-accent);
+}
+
+@media (max-width: 600px) {
+  .game-header {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .score-board {
+    width: 100%;
+    justify-content: space-around;
+  }
+  .controls-group {
+    width: 100%;
+    justify-content: space-around;
+  }
+}
