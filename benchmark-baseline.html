@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Benchmark</title>
+</head>
+<body>
+  <div id="score">0</div>
+  <div id="high-score">0</div>
+  <div id="combo-display"></div>
+  <div id="combo-mult">1</div>
+  <div id="combo-bar"></div>
+  <div id="pause-indicator"></div>
+  <div id="canvas-overlay"></div>
+  <div id="fps-counter"></div>
+  <div id="fps-value"></div>
+  <div id="menu-level"></div>
+  <div id="menu-high-score"></div>
+  <div id="current-difficulty"></div>
+  <div id="current-theme"></div>
+  <div id="current-mode"></div>
+  <div id="sound-icon"></div>
+  <div id="final-score"></div>
+  <div id="final-high-score"></div>
+  <div id="food-eaten"></div>
+  <div id="snake-length"></div>
+  <div id="best-combo"></div>
+  <div id="death-reason"></div>
+  <div id="run-xp-summary"></div>
+  <div id="new-record-row"></div>
+  <!-- Note: We have 500 score-display elements so querySelector takes longer like in a complex DOM -->
+  <script>
+    for (let i = 0; i < 500; i++) {
+      document.body.innerHTML += `<div class="not-score-display"></div>`;
+    }
+    document.body.innerHTML += `<div class="score-display"></div>`;
+  </script>
+
+  <script src="arcade/script.js"></script>
+  <script>
+    try {
+      const ui = new UIManager();
+      ui.updateHUD = function(s) {
+        this.score.textContent = Math.floor(s.displayScore);
+        this.high.textContent = s.highScore;
+        this.comboValue.textContent = s.combo;
+        const active = s.combo > 1;
+        this.comboDisplay.classList.toggle('active', active);
+        this.comboBar.style.transform = `scaleX(${Math.max(0, s.comboTimer / s.comboWindow)})`;
+        this.overlay.style.opacity = String(Math.min(0.45, s.nearMissGlow));
+        document.querySelector('.score-display')?.classList.toggle('almost-there', s.almostThere);
+        this.score.classList.toggle('pop', s.justScored);
+        if (s.justScored) requestAnimationFrame(() => this.score.classList.remove('pop'));
+      }
+
+      const state = {
+        displayScore: 100,
+        highScore: 200,
+        combo: 2,
+        comboTimer: 50,
+        comboWindow: 100,
+        nearMissGlow: 0.1,
+        almostThere: true,
+        justScored: true
+      };
+
+      const start = performance.now();
+      for (let i = 0; i < 50000; i++) {
+        ui.updateHUD(state);
+      }
+      const end = performance.now();
+
+      document.body.innerHTML += `<div id="result">Time taken: ${end - start} ms</div>`;
+      console.log(`Time taken: ${end - start} ms`);
+    } catch (e) {
+      console.error(e.toString());
+      document.body.innerHTML += `<div id="result">Error</div>`;
+    }
+  </script>
+</body>
+</html>

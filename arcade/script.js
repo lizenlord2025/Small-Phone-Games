@@ -636,6 +636,7 @@ class UIManager {
     this.deathReason = document.getElementById('death-reason');
     this.runXpSummary = document.getElementById('run-xp-summary');
     this.newRecordRow = document.getElementById('new-record-row');
+    this.scoreDisplay = document.querySelector('.score-display');
     this.floatLayer = document.createElement('div');
     this.floatLayer.className = 'ui-floating-layer';
     document.body.appendChild(this.floatLayer);
@@ -655,7 +656,7 @@ class UIManager {
     this.comboDisplay.classList.toggle('active', active);
     this.comboBar.style.transform = `scaleX(${Math.max(0, s.comboTimer / s.comboWindow)})`;
     this.overlay.style.opacity = String(Math.min(0.45, s.nearMissGlow));
-    document.querySelector('.score-display')?.classList.toggle('almost-there', s.almostThere);
+    this.scoreDisplay?.classList.toggle('almost-there', s.almostThere);
     this.score.classList.toggle('pop', s.justScored);
     if (s.justScored) requestAnimationFrame(() => this.score.classList.remove('pop'));
   }
