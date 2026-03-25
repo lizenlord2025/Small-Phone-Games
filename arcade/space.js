@@ -49,6 +49,18 @@ class SpaceEngine {
 
         this.mousePos = { x: 0, y: 0, active: false };
 
+        this.ui = {
+            menuHighScore: document.getElementById('menu-high-score'),
+            highScore: document.getElementById('high-score'),
+            currentDifficulty: document.getElementById('current-difficulty'),
+            score: document.getElementById('score'),
+            healthBar: document.getElementById('health-bar'),
+            bossHud: document.getElementById('boss-hud'),
+            bossHealthBar: document.getElementById('boss-health-bar'),
+            finalScore: document.getElementById('final-score'),
+            finalHighScore: document.getElementById('final-high-score')
+        };
+
         this.resize();
         window.addEventListener('resize', () => this.resize());
         this.initInput();
@@ -105,7 +117,7 @@ class SpaceEngine {
         document.querySelectorAll('.difficulty-option').forEach(btn => {
             btn.addEventListener('click', () => {
                 this.settings.difficulty = btn.dataset.difficulty;
-                document.getElementById('current-difficulty').textContent = this.settings.difficulty.toUpperCase();
+                this.ui.currentDifficulty.textContent = this.settings.difficulty.toUpperCase();
                 document.getElementById('difficulty-modal').classList.remove('active');
             });
         });
@@ -117,9 +129,9 @@ class SpaceEngine {
     }
 
     updateMenuStats() {
-        document.getElementById('menu-high-score').textContent = this.highScore;
-        document.getElementById('high-score').textContent = this.highScore;
-        document.getElementById('current-difficulty').textContent = this.settings.difficulty.toUpperCase();
+        this.ui.menuHighScore.textContent = this.highScore;
+        this.ui.highScore.textContent = this.highScore;
+        this.ui.currentDifficulty.textContent = this.settings.difficulty.toUpperCase();
     }
 
     start() {
@@ -127,7 +139,7 @@ class SpaceEngine {
         this.score = 0;
         this.levelProgress = 0;
         this.boss = null;
-        document.getElementById('boss-hud').classList.add('hidden');
+        this.ui.bossHud.classList.add('hidden');
 
         const diff = this.difficulties[this.settings.difficulty];
         this.player.maxHp = diff.hp;
@@ -160,8 +172,8 @@ class SpaceEngine {
             localStorage.setItem('neonSpace.highScore', this.highScore);
         }
 
-        document.getElementById('final-score').textContent = this.score;
-        document.getElementById('final-high-score').textContent = this.highScore;
+        this.ui.finalScore.textContent = this.score;
+        this.ui.finalHighScore.textContent = this.highScore;
         this.setScreen('game-over-screen');
         this.createExplosion(this.player.x, this.player.y, 40, '#00f7ff');
     }
@@ -191,30 +203,29 @@ class SpaceEngine {
 
     // --- Game Logic ---
     updateHUD() {
-        document.getElementById('score').textContent = this.score;
+        this.ui.score.textContent = this.score;
         const hpPct = Math.max(0, this.player.hp / this.player.maxHp * 100);
-        const bar = document.getElementById('health-bar');
-        bar.style.width = `${hpPct}%`;
+        this.ui.healthBar.style.width = `${hpPct}%`;
 
         if(hpPct < 30) {
-            bar.classList.add('low');
-            bar.style.backgroundColor = '#ff4f89';
+            this.ui.healthBar.classList.add('low');
+            this.ui.healthBar.style.backgroundColor = '#ff4f89';
         } else {
-            bar.classList.remove('low');
+            this.ui.healthBar.classList.remove('low');
             if(this.player.shieldTimer > 0) {
-                bar.style.backgroundColor = '#b366ff'; // purple for shield
+                this.ui.healthBar.style.backgroundColor = '#b366ff'; // purple for shield
             } else {
-                bar.style.backgroundColor = '#26ff91'; // green normal
+                this.ui.healthBar.style.backgroundColor = '#26ff91'; // green normal
             }
         }
 
         if(this.boss && this.boss.active) {
-            document.getElementById('boss-hud').classList.remove('hidden');
+            this.ui.bossHud.classList.remove('hidden');
             const diff = this.difficulties[this.settings.difficulty];
             const bossHpPct = Math.max(0, this.boss.hp / diff.bossHp * 100);
-            document.getElementById('boss-health-bar').style.width = `${bossHpPct}%`;
+            this.ui.bossHealthBar.style.width = `${bossHpPct}%`;
         } else {
-            document.getElementById('boss-hud').classList.add('hidden');
+            this.ui.bossHud.classList.add('hidden');
         }
     }
 

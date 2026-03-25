@@ -38,6 +38,14 @@ class BubbleEngine {
         this.mousePos = { x: 0, y: 0 };
         this.shotsFired = 0;
 
+        this.ui = {
+            menuHighScore: document.getElementById('menu-high-score'),
+            highScore: document.getElementById('high-score'),
+            score: document.getElementById('score'),
+            finalScore: document.getElementById('final-score'),
+            finalHighScore: document.getElementById('final-high-score')
+        };
+
         this.resize();
         window.addEventListener('resize', () => this.resize());
         this.initInput();
@@ -155,8 +163,8 @@ class BubbleEngine {
     }
 
     updateMenuStats() {
-        document.getElementById('menu-high-score').textContent = this.highScore;
-        document.getElementById('high-score').textContent = this.highScore;
+        this.ui.menuHighScore.textContent = this.highScore;
+        this.ui.highScore.textContent = this.highScore;
     }
 
     getRandomColor() {
@@ -186,7 +194,7 @@ class BubbleEngine {
             }
         }
 
-        document.getElementById('score').textContent = this.score;
+        this.ui.score.textContent = this.score;
         this.setScreen('game-screen');
     }
 
@@ -203,8 +211,8 @@ class BubbleEngine {
             localStorage.setItem('neonBubble.highScore', this.highScore);
         }
 
-        document.getElementById('final-score').textContent = this.score;
-        document.getElementById('final-high-score').textContent = this.highScore;
+        this.ui.finalScore.textContent = this.score;
+        this.ui.finalHighScore.textContent = this.highScore;
         this.setScreen('game-over-screen');
     }
 
@@ -349,7 +357,7 @@ class BubbleEngine {
             const floatingDropped = this.removeFloating();
             this.score += floatingDropped * 20;
 
-            document.getElementById('score').textContent = this.score;
+            this.ui.score.textContent = this.score;
         }
 
         this.movingBubble = null;
