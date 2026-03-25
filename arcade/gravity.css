@@ -1,0 +1,315 @@
+/* === Base Styles & Fonts === */
+@import url('hub.css'); /* Reuse some hub variables and button styles if possible */
+
+:root {
+  --neon-bg: #0f0f1b;
+  --neon-ball: #ffffff;
+  --neon-hole: #39ff14; /* Neon green */
+  --neon-planet-1: #ff3333; /* Mars red */
+  --neon-planet-2: #00e5ff; /* Neptune blue */
+  --neon-text: #fff;
+  --neon-ring: rgba(255, 255, 255, 0.2);
+  --neon-trajectory: rgba(255, 255, 255, 0.5);
+
+  --min-bg: #f8f9fa;
+  --min-ball: #333333;
+  --min-hole: #28a745;
+  --min-planet-1: #dc3545;
+  --min-planet-2: #17a2b8;
+  --min-text: #333333;
+  --min-ring: rgba(0, 0, 0, 0.1);
+  --min-trajectory: rgba(0, 0, 0, 0.4);
+
+  --font-primary: 'Orbitron', sans-serif;
+  --font-secondary: 'Rajdhani', sans-serif;
+}
+
+/* Base Body Styles */
+body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden; /* Prevent scrolling during drag */
+  font-family: var(--font-primary);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  width: 100vw;
+  transition: background-color 0.3s ease;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none; /* Crucial for preventing pinch-zoom and pull-to-refresh on mobile */
+}
+
+/* Theme Classes */
+body.neon-theme {
+  background-color: var(--neon-bg);
+  color: var(--neon-text);
+}
+
+body.minimal-theme {
+  background-color: var(--min-bg);
+  color: var(--min-text);
+}
+
+/* Layout */
+#game-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  max-width: 1200px;
+  position: relative;
+}
+
+/* Header UI */
+.game-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  z-index: 10;
+  pointer-events: auto; /* Ensure buttons are clickable over canvas */
+}
+
+.stats-container {
+  display: flex;
+  gap: 2rem;
+}
+
+.stat-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: rgba(0,0,0,0.5);
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+body.minimal-theme .stat-box {
+  background: rgba(255,255,255,0.8);
+  border: 1px solid rgba(0,0,0,0.1);
+}
+
+.stat-label {
+  font-family: var(--font-secondary);
+  font-size: 0.8rem;
+  letter-spacing: 2px;
+  opacity: 0.7;
+}
+
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #00e5ff; /* Fallback accent */
+}
+
+.controls-container {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+/* Select Styling (reusing pattern from memory.css) */
+select {
+  background: rgba(0, 0, 0, 0.4);
+  color: var(--neon-text);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-family: var(--font-secondary);
+  font-size: 1rem;
+  outline: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+body.minimal-theme select {
+  background: white;
+  color: var(--min-text);
+  border: 1px solid rgba(0, 0, 0, 0.2);
+}
+
+/* Main Area (Canvas Layering) */
+.game-main {
+  flex: 1;
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+#game-canvas {
+  z-index: 1;
+}
+
+#ui-canvas {
+  z-index: 2;
+  pointer-events: none; /* Let input fall through to the document/game logic */
+}
+
+/* Tutorial Text */
+.tutorial-overlay {
+  position: absolute;
+  bottom: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--font-secondary);
+  font-size: 1.2rem;
+  opacity: 0.6;
+  z-index: 3;
+  pointer-events: none;
+  animation: pulse 2s infinite;
+  text-align: center;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.8; }
+}
+
+/* Modals */
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
+  backdrop-filter: blur(5px);
+  opacity: 1;
+  visibility: visible;
+  transition: all 0.3s ease;
+}
+
+.modal.hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.modal-content {
+  background: var(--neon-bg);
+  padding: 3rem;
+  border-radius: 15px;
+  border: 2px solid #00e5ff;
+  text-align: center;
+  box-shadow: 0 0 30px rgba(0, 229, 255, 0.2);
+  transform: scale(1);
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+body.minimal-theme .modal-content {
+  background: white;
+  border: 1px solid #ddd;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.modal.hidden .modal-content {
+  transform: scale(0.9);
+}
+
+.modal-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 2rem;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* Base Buttons */
+.game-btn {
+  font-family: var(--font-secondary);
+  font-size: 1.1rem;
+  font-weight: 700;
+  padding: 0.8rem 2rem;
+  border-radius: 8px;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  text-decoration: none;
+}
+
+.game-btn.primary {
+  background: #00e5ff;
+  color: #0f0f1b;
+  box-shadow: 0 0 15px rgba(0, 229, 255, 0.4);
+}
+.game-btn.primary:hover {
+  box-shadow: 0 0 25px rgba(0, 229, 255, 0.8);
+  transform: translateY(-2px);
+}
+
+.game-btn.secondary {
+  background: transparent;
+  color: var(--neon-text);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+.game-btn.secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+body.minimal-theme .game-btn.primary {
+  background: #333;
+  color: white;
+  box-shadow: none;
+}
+body.minimal-theme .game-btn.secondary {
+  color: var(--min-text);
+  border: 1px solid rgba(0, 0, 0, 0.3);
+}
+body.minimal-theme .game-btn.secondary:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.game-btn.tertiary {
+  background: transparent;
+  color: var(--neon-text);
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  border: 1px solid transparent;
+}
+.game-btn.tertiary:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+}
+body.minimal-theme .game-btn.tertiary {
+  color: var(--min-text);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .game-header {
+      padding: 1rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+  }
+  .controls-container {
+      width: 100%;
+      justify-content: center;
+  }
+}
