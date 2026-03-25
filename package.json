@@ -20,5 +20,8 @@
   "bugs": {
     "url": "https://github.com/lizenlord2025/Small-Phone-Games/issues"
   },
-  "homepage": "https://github.com/lizenlord2025/Small-Phone-Games#readme"
+  "homepage": "https://github.com/lizenlord2025/Small-Phone-Games#readme",
+  "dependencies": {
+    "puppeteer": "^24.40.0"
+  }
 }
