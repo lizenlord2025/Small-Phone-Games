@@ -21,6 +21,14 @@ class DragonEngine {
         this.bgParticles = [];
         this.mouse = { x: null, y: null, radius: 150 };
 
+        this.ui = {
+            menuHighScore: document.getElementById('menu-high-score'),
+            highScore: document.getElementById('high-score'),
+            score: document.getElementById('score'),
+            finalScore: document.getElementById('final-score'),
+            finalHighScore: document.getElementById('final-high-score')
+        };
+
         this.resize();
         window.addEventListener('resize', () => this.resize());
         this.initInput();
@@ -97,8 +105,8 @@ class DragonEngine {
     }
 
     updateMenuStats() {
-        document.getElementById('menu-high-score').textContent = this.highScore;
-        document.getElementById('high-score').textContent = this.highScore;
+        this.ui.menuHighScore.textContent = this.highScore;
+        this.ui.highScore.textContent = this.highScore;
     }
 
     start() {
@@ -112,7 +120,7 @@ class DragonEngine {
         this.frameCount = 0;
         this.pipeSpeed = 3;
 
-        document.getElementById('score').textContent = this.score;
+        this.ui.score.textContent = this.score;
         this.setScreen('game-screen');
     }
 
@@ -129,8 +137,8 @@ class DragonEngine {
             localStorage.setItem('flappyDragon.highScore', this.highScore);
         }
 
-        document.getElementById('final-score').textContent = this.score;
-        document.getElementById('final-high-score').textContent = this.highScore;
+        this.ui.finalScore.textContent = this.score;
+        this.ui.finalHighScore.textContent = this.highScore;
         this.setScreen('game-over-screen');
         this.createExplosion(this.dragon.x, this.dragon.y);
     }
@@ -226,7 +234,7 @@ class DragonEngine {
             if (p.x + this.pipeWidth < this.dragon.x && !p.passed) {
                 this.score++;
                 p.passed = true;
-                document.getElementById('score').textContent = this.score;
+                this.ui.score.textContent = this.score;
                 if(this.score % 5 === 0) this.pipeSpeed += 0.2; // increase difficulty
             }
 
