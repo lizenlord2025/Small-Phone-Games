@@ -628,10 +628,10 @@ class UIManager {
     this.currentTheme = document.getElementById('current-theme');
     this.currentMode = document.getElementById('current-mode');
     this.soundIcon = document.getElementById('sound-icon');
-    this.finalScore = document.getElementById('final-score');
-    this.finalHighScore = document.getElementById('final-high-score');
-    this.foodEaten = document.getElementById('food-eaten');
-    this.snakeLength = document.getElementById('snake-length');
+    this.finalScoreEl = document.getElementById('final-score');
+    this.finalHighScoreEl = document.getElementById('final-high-score');
+    this.foodEatenEl = document.getElementById('food-eaten');
+    this.snakeLengthEl = document.getElementById('snake-length');
     this.bestComboStat = document.getElementById('best-combo');
     this.deathReason = document.getElementById('death-reason');
     this.runXpSummary = document.getElementById('run-xp-summary');
@@ -680,10 +680,10 @@ class UIManager {
   setDebug(visible) { this.fps.classList.toggle('visible', visible); }
   setFPS(v) { this.fpsValue.textContent = String(Math.round(v)); }
   gameOver(summary) {
-    this.finalScore.textContent = summary.score;
-    this.finalHighScore.textContent = summary.highScore;
-    this.foodEaten.textContent = summary.food;
-    this.snakeLength.textContent = summary.length;
+    this.finalScoreEl.textContent = summary.score;
+    this.finalHighScoreEl.textContent = summary.highScore;
+    this.foodEatenEl.textContent = summary.food;
+    this.snakeLengthEl.textContent = summary.length;
     this.bestComboStat.textContent = `x${summary.bestCombo}`;
     this.deathReason.textContent = summary.reason;
     this.runXpSummary.textContent = `+${summary.xpEarned} XP earned`;
