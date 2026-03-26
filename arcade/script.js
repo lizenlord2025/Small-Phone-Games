@@ -14,6 +14,26 @@ const STORAGE_KEYS = {
   cosmetics: 'neonSnake.cosmetics'
 };
 
+const DEFAULT_STATS = {
+  games: 0,
+  totalScore: 0,
+  bestSurvival: 0
+};
+
+const DEFAULT_PROGRESSION = {
+  xp: 0,
+  level: 1
+};
+
+const DEFAULT_COSMETICS = {
+  skin: 'default',
+  trail: 'neon',
+  unlockedSkins: ['default'],
+  unlockedTrails: ['neon']
+};
+
+const DEFAULT_GHOST_PATH = [];
+
 const safeStorage = {
   get(key) {
     try {
@@ -726,10 +746,22 @@ class GameEngine {
     this.bestCombo = 1;
     this.survivalTime = 0;
     this.highScore = Number(safeStorage.get(STORAGE_KEYS.highScore) || 0);
-    this.stats = JSON.parse(safeStorage.get(STORAGE_KEYS.stats) || '{"games":0,"totalScore":0,"bestSurvival":0}');
-    this.progression = JSON.parse(safeStorage.get(STORAGE_KEYS.progression) || '{"xp":0,"level":1}');
-    this.cosmetics = JSON.parse(safeStorage.get(STORAGE_KEYS.cosmetics) || '{"skin":"default","trail":"neon","unlockedSkins":["default"],"unlockedTrails":["neon"]}');
-    this.ghostPath = JSON.parse(safeStorage.get(STORAGE_KEYS.ghost) || '[]');
+
+    this.stats = JSON.parse(
+      safeStorage.get(STORAGE_KEYS.stats) || JSON.stringify(DEFAULT_STATS)
+    );
+
+    this.progression = JSON.parse(
+      safeStorage.get(STORAGE_KEYS.progression) || JSON.stringify(DEFAULT_PROGRESSION)
+    );
+
+    this.cosmetics = JSON.parse(
+      safeStorage.get(STORAGE_KEYS.cosmetics) || JSON.stringify(DEFAULT_COSMETICS)
+    );
+
+    this.ghostPath = JSON.parse(
+      safeStorage.get(STORAGE_KEYS.ghost) || JSON.stringify(DEFAULT_GHOST_PATH)
+    );
     this.currentPath = [];
     this.achieved = new Set();
     this.elapsed = 0;
