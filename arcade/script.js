@@ -973,9 +973,23 @@ class GameEngine {
 
     const wallDist = Math.min(head.x, head.y, this.canvas.width - head.x, this.canvas.height - head.y);
     if (wallDist < NAVIGATION_BONUS.EDGE_DISTANCE) this.score += NAVIGATION_BONUS.EDGE_SCORE; // edge riding bonus
+
+    // Performance optimization: Calculate tight-space navigation bonus without array allocations
     const denseRadSq = NAVIGATION_BONUS.DENSE_RADIUS ** 2;
-    const dense = this.snake.segments.slice(NAVIGATION_BONUS.DENSE_MIN_SEGMENT).filter(s => ((head.x - s.x)**2 + (head.y - s.y)**2) < denseRadSq).length;
+    let dense = 0;
+    const segments = this.snake.segments;
+    const hx = head.x;
+    const hy = head.y;
+    for (let i = NAVIGATION_BONUS.DENSE_MIN_SEGMENT; i < segments.length; i++) {
+      const s = segments[i];
+      const dx = hx - s.x;
+      const dy = hy - s.y;
+      if (dx * dx + dy * dy < denseRadSq) {
+        dense++;
+      }
+    }
     if (dense >= NAVIGATION_BONUS.DENSE_COUNT) this.score += NAVIGATION_BONUS.DENSE_SCORE; // tight-space navigation bonus
+
     if (this.snake.turnRate > NAVIGATION_BONUS.PRECISION_TURN_RATE && this.snake.speed > NAVIGATION_BONUS.PRECISION_SPEED) this.score += NAVIGATION_BONUS.PRECISION_SCORE; // precision turn bonus
 
     this.ui.updateHUD(this);
