@@ -1,59 +1,71 @@
-const fs = require('fs');
-const code = fs.readFileSync('arcade/script.js', 'utf8');
-// Evaluate the code to get UIManager
-const { JSDOM } = require('jsdom');
-const dom = new JSDOM(`
-  <div id="score">0</div>
-  <div id="highscore">0</div>
-  <div id="combo-value">1</div>
-  <div id="combo-display"></div>
-  <div id="combo-bar"></div>
-  <div id="overlay"></div>
-  <div id="start-btn"></div>
-  <div id="mode-btn"></div>
-  <div id="settings-btn"></div>
-  <div id="sound-btn"></div>
-  <div class="score-display"></div>
-  <div class="screens">
-    <div id="screen-start"></div>
-    <div id="screen-game"></div>
-    <div id="screen-game-over"></div>
-  </div>
-`);
-global.document = dom.window.document;
-global.window = dom.window;
+const { performance } = require('perf_hooks');
 
-// Mock requestAnimationFrame
-global.requestAnimationFrame = (cb) => setTimeout(cb, 0);
-global.localStorage = { getItem: () => null, setItem: () => {} };
-global.AudioContext = class { createOscillator() { return { connect: () => {}, start: () => {}, stop: () => {}, type: '', frequency: { setValueAtTime: () => {}, exponentialRampToValueAtTime: () => {} } } } createGain() { return { connect: () => {}, gain: { setValueAtTime: () => {}, exponentialRampToValueAtTime: () => {} } } } };
+const NAVIGATION_BONUS = {
+  EDGE_DISTANCE: 28,
+  EDGE_SCORE: 0.08,
+  DENSE_MIN_SEGMENT: 10,
+  DENSE_RADIUS: 38,
+  DENSE_COUNT: 3,
+  DENSE_SCORE: 0.16,
+  PRECISION_TURN_RATE: 8,
+  PRECISION_SPEED: 190,
+  PRECISION_SCORE: 0.18
+};
 
-// Mock canvas
-global.HTMLCanvasElement = dom.window.HTMLCanvasElement;
+const DENSE_MIN_SEGMENT = NAVIGATION_BONUS.DENSE_MIN_SEGMENT;
+const denseRadSq = NAVIGATION_BONUS.DENSE_RADIUS ** 2;
 
-try {
-  eval(code);
-  const ui = new UIManager();
-
-  const state = {
-    displayScore: 100,
-    highScore: 200,
-    combo: 2,
-    comboTimer: 50,
-    comboWindow: 100,
-    nearMissGlow: 0.1,
-    almostThere: true,
-    justScored: true
-  };
-
-  const start = process.hrtime.bigint();
-  for (let i = 0; i < 100000; i++) {
-    ui.updateHUD(state);
-  }
-  const end = process.hrtime.bigint();
-
-  console.log(`Time taken: ${(end - start) / 1000000n} ms`);
-
-} catch(e) {
-  console.error(e);
+// Mock snake segments
+const NUM_SEGMENTS = 50;
+const segments = [];
+for (let i = 0; i < NUM_SEGMENTS; i++) {
+  segments.push({ x: 100 + Math.random() * 200, y: 100 + Math.random() * 200 });
 }
+const head = { x: 200, y: 200 };
+
+const ITERATIONS = 1000000; // 1 million
+
+function runOriginal() {
+  let score = 0;
+  for (let i = 0; i < ITERATIONS; i++) {
+    const dense = segments.slice(DENSE_MIN_SEGMENT).filter(s => ((head.x - s.x)**2 + (head.y - s.y)**2) < denseRadSq).length;
+    if (dense >= NAVIGATION_BONUS.DENSE_COUNT) score += NAVIGATION_BONUS.DENSE_SCORE;
+  }
+  return score;
+}
+
+function runOptimized() {
+  let score = 0;
+  for (let i = 0; i < ITERATIONS; i++) {
+    let dense = 0;
+    const hx = head.x;
+    const hy = head.y;
+    for (let j = DENSE_MIN_SEGMENT; j < segments.length; j++) {
+      const s = segments[j];
+      const dx = hx - s.x;
+      const dy = hy - s.y;
+      if (dx * dx + dy * dy < denseRadSq) {
+        dense++;
+      }
+    }
+    if (dense >= NAVIGATION_BONUS.DENSE_COUNT) score += NAVIGATION_BONUS.DENSE_SCORE;
+  }
+  return score;
+}
+
+// Warm up
+runOriginal();
+runOptimized();
+
+const startOriginal = performance.now();
+const res1 = runOriginal();
+const endOriginal = performance.now();
+
+const startOptimized = performance.now();
+const res2 = runOptimized();
+const endOptimized = performance.now();
+
+console.log(`Original Time: ${(endOriginal - startOriginal).toFixed(2)} ms`);
+console.log(`Optimized Time: ${(endOptimized - startOptimized).toFixed(2)} ms`);
+console.log(`Improvement: ${((endOriginal - startOriginal) / (endOptimized - startOptimized)).toFixed(2)}x faster`);
+console.log(`Outputs match: ${res1.toFixed(2) === res2.toFixed(2)} (${res1.toFixed(2)} vs ${res2.toFixed(2)})`);
