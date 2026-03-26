@@ -22,6 +22,7 @@
   },
   "homepage": "https://github.com/lizenlord2025/Small-Phone-Games#readme",
   "dependencies": {
+    "jsdom": "^29.0.1",
     "puppeteer": "^24.40.0"
   }
 }
