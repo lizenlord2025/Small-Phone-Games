@@ -1,39 +1,71 @@
-const { JSDOM } = require('jsdom');
-const fs = require('fs');
+const { performance } = require('perf_hooks');
 
-const dom = new JSDOM(`<!DOCTYPE html>
-<html>
-<body>
-  <div id="final-score"></div>
-  <div id="final-high-score"></div>
-  <div id="food-eaten"></div>
-  <div id="snake-length"></div>
-</body>
-</html>`);
-global.document = dom.window.document;
-global.window = dom.window;
-
-// Require the exported classes from script.js
-const { UIManager } = require('./script.js');
-
-const uiManager = new UIManager();
-// Add dummy properties to avoid errors if UIManager expects them
-uiManager.fpsValue = { textContent: '' };
-
-const summary = {
-    score: 100,
-    highScore: 500,
-    food: 10,
-    length: 15
+const NAVIGATION_BONUS = {
+  EDGE_DISTANCE: 28,
+  EDGE_SCORE: 0.08,
+  DENSE_MIN_SEGMENT: 10,
+  DENSE_RADIUS: 38,
+  DENSE_COUNT: 3,
+  DENSE_SCORE: 0.16,
+  PRECISION_TURN_RATE: 8,
+  PRECISION_SPEED: 190,
+  PRECISION_SCORE: 0.18
 };
 
-const ITERATIONS = 100000;
+const DENSE_MIN_SEGMENT = NAVIGATION_BONUS.DENSE_MIN_SEGMENT;
+const denseRadSq = NAVIGATION_BONUS.DENSE_RADIUS ** 2;
 
-const start = process.hrtime.bigint();
-for (let i = 0; i < ITERATIONS; i++) {
-    uiManager.gameOver(summary);
+// Mock snake segments
+const NUM_SEGMENTS = 50;
+const segments = [];
+for (let i = 0; i < NUM_SEGMENTS; i++) {
+  segments.push({ x: 100 + Math.random() * 200, y: 100 + Math.random() * 200 });
 }
-const end = process.hrtime.bigint();
+const head = { x: 200, y: 200 };
 
-const durationMs = Number(end - start) / 1000000;
-console.log(`Baseline Execution Time for ${ITERATIONS} iterations: ${durationMs.toFixed(2)} ms`);
+const ITERATIONS = 1000000; // 1 million
+
+function runOriginal() {
+  let score = 0;
+  for (let i = 0; i < ITERATIONS; i++) {
+    const dense = segments.slice(DENSE_MIN_SEGMENT).filter(s => ((head.x - s.x)**2 + (head.y - s.y)**2) < denseRadSq).length;
+    if (dense >= NAVIGATION_BONUS.DENSE_COUNT) score += NAVIGATION_BONUS.DENSE_SCORE;
+  }
+  return score;
+}
+
+function runOptimized() {
+  let score = 0;
+  for (let i = 0; i < ITERATIONS; i++) {
+    let dense = 0;
+    const hx = head.x;
+    const hy = head.y;
+    for (let j = DENSE_MIN_SEGMENT; j < segments.length; j++) {
+      const s = segments[j];
+      const dx = hx - s.x;
+      const dy = hy - s.y;
+      if (dx * dx + dy * dy < denseRadSq) {
+        dense++;
+      }
+    }
+    if (dense >= NAVIGATION_BONUS.DENSE_COUNT) score += NAVIGATION_BONUS.DENSE_SCORE;
+  }
+  return score;
+}
+
+// Warm up
+runOriginal();
+runOptimized();
+
+const startOriginal = performance.now();
+const res1 = runOriginal();
+const endOriginal = performance.now();
+
+const startOptimized = performance.now();
+const res2 = runOptimized();
+const endOptimized = performance.now();
+
+console.log(`Original Time: ${(endOriginal - startOriginal).toFixed(2)} ms`);
+console.log(`Optimized Time: ${(endOptimized - startOptimized).toFixed(2)} ms`);
+console.log(`Improvement: ${((endOriginal - startOriginal) / (endOptimized - startOptimized)).toFixed(2)}x faster`);
+console.log(`Outputs match: ${res1.toFixed(2) === res2.toFixed(2)} (${res1.toFixed(2)} vs ${res2.toFixed(2)})`);
