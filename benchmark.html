@@ -29,10 +29,16 @@
   <div id="new-record-row"></div>
   <!-- Note: We have 500 score-display elements so querySelector takes longer like in a complex DOM -->
   <script>
+    const fragment = document.createDocumentFragment();
     for (let i = 0; i < 500; i++) {
-      document.body.innerHTML += `<div class="not-score-display"></div>`;
+      const div = document.createElement('div');
+      div.className = 'not-score-display';
+      fragment.appendChild(div);
     }
-    document.body.innerHTML += `<div class="score-display"></div>`;
+    const scoreDisplay = document.createElement('div');
+    scoreDisplay.className = 'score-display';
+    fragment.appendChild(scoreDisplay);
+    document.body.appendChild(fragment);
   </script>
 
   <script src="arcade/script.js"></script>
@@ -56,11 +62,17 @@
       }
       const end = performance.now();
 
-      document.body.innerHTML += `<div id="result">Time taken: ${end - start} ms</div>`;
+      const resultDiv = document.createElement('div');
+      resultDiv.id = 'result';
+      resultDiv.textContent = `Time taken: ${end - start} ms`;
+      document.body.appendChild(resultDiv);
       console.log(`Time taken: ${end - start} ms`);
     } catch (e) {
       console.error(e.toString());
-      document.body.innerHTML += `<div id="result">Error</div>`;
+      const errorDiv = document.createElement('div');
+      errorDiv.id = 'result';
+      errorDiv.textContent = 'Error';
+      document.body.appendChild(errorDiv);
     }
   </script>
 </body>

@@ -1,3 +1,7 @@
+const sqDist = (x1, y1, x2, y2) => (x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1);
+const ENEMY_TYPES = ['basic', 'fast', 'tank'];
+const POWERUP_TYPES = ['double', 'spread', 'rapid', 'shield', 'heal'];
+
 class SpaceEngine {
     constructor() {
         this.canvas = document.getElementById('game-canvas');
@@ -277,8 +281,7 @@ class SpaceEngine {
         }
 
         if(Math.random() < diff.spawnRate) {
-            const types = ['basic', 'fast', 'tank'];
-            const type = types[Math.floor(Math.random() * types.length)];
+            const type = ENEMY_TYPES[Math.floor(Math.random() * ENEMY_TYPES.length)];
             const x = Math.random() * (this.canvas.width - 40) + 20;
 
             let hp, vy, color, width, height, score;
@@ -355,8 +358,7 @@ class SpaceEngine {
 
     spawnPowerup(x, y) {
         if(Math.random() < 0.15) { // 15% chance to drop powerup
-            const types = ['double', 'spread', 'rapid', 'shield', 'heal'];
-            const type = types[Math.floor(Math.random() * types.length)];
+            const type = POWERUP_TYPES[Math.floor(Math.random() * POWERUP_TYPES.length)];
             let color = '#fff';
             if(type === 'heal') color = '#37ff00';
             if(type === 'shield') color = '#b366ff';
@@ -368,17 +370,17 @@ class SpaceEngine {
         }
     }
 
+    takeDamage(dmg) {
+        if(this.player.shieldTimer > 0) return; // Immune
+        this.player.hp -= dmg;
+        this.createExplosion(this.player.x, this.player.y, 10, '#00f7ff');
+        if(this.player.hp <= 0) this.gameOver();
+    }
+
     checkCollisions() {
-        const sqDist = (x1,y1,x2,y2) => (x2-x1)*(x2-x1) + (y2-y1)*(y2-y1);
-
         // Player Bullets hitting Enemies or Boss
-        const bullets = this.pools.bullets;
-        const bulletsLen = bullets.length;
-        const enemies = this.pools.enemies;
-        const enemiesLen = enemies.length;
-
-        for (let i = 0; i < bulletsLen; i++) {
-            const bullet = bullets[i];
+        for (let i = 0; i < this.pools.bullets.length; i++) {
+            const bullet = this.pools.bullets[i];
             if (!bullet.active) continue;
 
             // Boss collision
@@ -399,9 +401,11 @@ class SpaceEngine {
                 }
             }
 
+            if (!bullet.active) continue;
+
             // Normal Enemies
-            for (let j = 0; j < enemiesLen; j++) {
-                const enemy = enemies[j];
+            for (let j = 0; j < this.pools.enemies.length; j++) {
+                const enemy = this.pools.enemies[j];
                 if (!enemy.active) continue;
 
                 if(Math.abs(bullet.x - enemy.x) < enemy.width/2 + bullet.width/2 &&
@@ -418,6 +422,7 @@ class SpaceEngine {
                         this.createExplosion(enemy.x, enemy.y, 15, enemy.color);
                         this.spawnPowerup(enemy.x, enemy.y);
                     }
+                    break;
                 }
             }
         }
@@ -437,36 +442,28 @@ class SpaceEngine {
             }
         }
 
-        // Taking Damage Logic
-        const takeDamage = (dmg) => {
-            if(this.player.shieldTimer > 0) return; // Immune
-            this.player.hp -= dmg;
-            this.createExplosion(this.player.x, this.player.y, 10, '#00f7ff');
-            if(this.player.hp <= 0) this.gameOver();
-        };
-
         // Enemy Bullets hitting Player
-        const enemyBullets = this.pools.enemyBullets;
-        const enemyBulletsLen = enemyBullets.length;
-        for (let i = 0; i < enemyBulletsLen; i++) {
-            const bullet = enemyBullets[i];
+        for (let i = 0; i < this.pools.enemyBullets.length; i++) {
+            const bullet = this.pools.enemyBullets[i];
             if (!bullet.active) continue;
+
             if(Math.abs(bullet.x - this.player.x) < this.player.width/2 + bullet.width/2 &&
                Math.abs(bullet.y - this.player.y) < this.player.height/2 + bullet.height/2) {
                 bullet.active = false;
-                takeDamage(bullet.damage);
+                this.takeDamage(bullet.damage);
             }
         }
 
         // Enemies crashing into Player
-        for (let i = 0; i < enemiesLen; i++) {
-            const enemy = enemies[i];
+        for (let i = 0; i < this.pools.enemies.length; i++) {
+            const enemy = this.pools.enemies[i];
             if (!enemy.active) continue;
+
             if(Math.abs(enemy.x - this.player.x) < this.player.width/2 + enemy.width/2 &&
                Math.abs(enemy.y - this.player.y) < this.player.height/2 + enemy.height/2) {
                 enemy.active = false;
                 this.createExplosion(enemy.x, enemy.y, 15, enemy.color);
-                takeDamage(20);
+                this.takeDamage(20);
             }
         }
 
@@ -474,7 +471,7 @@ class SpaceEngine {
         if(this.boss && this.boss.active) {
             if(Math.abs(this.boss.x - this.player.x) < this.boss.width/2 + this.player.width/2 &&
                Math.abs(this.boss.y - this.player.y) < this.boss.height/2 + this.player.height/2) {
-                takeDamage(5); // Constant damage while overlapping
+                this.takeDamage(5); // Constant damage while overlapping
             }
         }
     }
@@ -490,24 +487,24 @@ class SpaceEngine {
         const particlesLen = particles.length;
 
         // Player Bullets
-        for (let i = 0; i < bulletsLen; i++) {
-            const b = bullets[i];
+        for (let i = 0; i < this.pools.bullets.length; i++) {
+            const b = this.pools.bullets[i];
             if (!b.active) continue;
             b.x += b.vx; b.y += b.vy;
             if(b.y < -20 || b.y > this.canvas.height + 20 || b.x < -20 || b.x > this.canvas.width + 20) b.active = false;
         }
 
         // Enemy Bullets
-        for (let i = 0; i < enemyBulletsLen; i++) {
-            const b = enemyBullets[i];
+        for (let i = 0; i < this.pools.enemyBullets.length; i++) {
+            const b = this.pools.enemyBullets[i];
             if (!b.active) continue;
             b.x += b.vx; b.y += b.vy;
             if(b.y > this.canvas.height + 20 || b.x < -20 || b.x > this.canvas.width + 20) b.active = false;
         }
 
         // Enemies
-        for (let i = 0; i < enemiesLen; i++) {
-            const e = enemies[i];
+        for (let i = 0; i < this.pools.enemies.length; i++) {
+            const e = this.pools.enemies[i];
             if (!e.active) continue;
             e.y += e.vy;
             e.x += Math.sin(e.y * 0.05) * (e.type === 'fast' ? 2 : 0.5); // Wiggle
@@ -532,8 +529,8 @@ class SpaceEngine {
         }
 
         // Particles
-        for (let i = 0; i < particlesLen; i++) {
-            const p = particles[i];
+        for (let i = 0; i < this.pools.particles.length; i++) {
+            const p = this.pools.particles[i];
             if (!p.active) continue;
             p.x += p.vx; p.y += p.vy;
             p.life -= 0.02;
@@ -623,8 +620,8 @@ class SpaceEngine {
         const particlesLen = particles.length;
 
         // Draw Enemies
-        for (let i = 0; i < enemiesLen; i++) {
-            const e = enemies[i];
+        for (let i = 0; i < this.pools.enemies.length; i++) {
+            const e = this.pools.enemies[i];
             if (!e.active) continue;
             drawRect(e.x, e.y, e.width, e.height, e.color);
             // Core
@@ -641,15 +638,15 @@ class SpaceEngine {
 
         // Draw Bullets
         this.ctx.shadowBlur = 0; // optimized
-        for (let i = 0; i < bulletsLen; i++) {
-            const b = bullets[i];
+        for (let i = 0; i < this.pools.bullets.length; i++) {
+            const b = this.pools.bullets[i];
             if (!b.active) continue;
             this.ctx.fillStyle = b.color;
             this.ctx.fillRect(b.x - b.width/2, b.y - b.height/2, b.width, b.height);
         }
 
-        for (let i = 0; i < enemyBulletsLen; i++) {
-            const b = enemyBullets[i];
+        for (let i = 0; i < this.pools.enemyBullets.length; i++) {
+            const b = this.pools.enemyBullets[i];
             if (!b.active) continue;
             this.ctx.fillStyle = b.color;
             this.ctx.fillRect(b.x - b.width/2, b.y - b.height/2, b.width, b.height);
@@ -657,8 +654,8 @@ class SpaceEngine {
 
         // Draw Particles
         this.ctx.globalCompositeOperation = 'lighter';
-        for (let i = 0; i < particlesLen; i++) {
-            const p = particles[i];
+        for (let i = 0; i < this.pools.particles.length; i++) {
+            const p = this.pools.particles[i];
             if (!p.active) continue;
             this.ctx.globalAlpha = Math.max(0, p.life / p.maxLife);
             this.ctx.fillStyle = p.color;
