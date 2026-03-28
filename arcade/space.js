@@ -372,7 +372,15 @@ class SpaceEngine {
         const sqDist = (x1,y1,x2,y2) => (x2-x1)*(x2-x1) + (y2-y1)*(y2-y1);
 
         // Player Bullets hitting Enemies or Boss
-        this.pools.bullets.filter(b => b.active).forEach(bullet => {
+        const bullets = this.pools.bullets;
+        const bulletsLen = bullets.length;
+        const enemies = this.pools.enemies;
+        const enemiesLen = enemies.length;
+
+        for (let i = 0; i < bulletsLen; i++) {
+            const bullet = bullets[i];
+            if (!bullet.active) continue;
+
             // Boss collision
             if(this.boss && this.boss.active) {
                 if(Math.abs(bullet.x - this.boss.x) < this.boss.width/2 + bullet.width/2 &&
@@ -392,7 +400,10 @@ class SpaceEngine {
             }
 
             // Normal Enemies
-            this.pools.enemies.filter(e => e.active).forEach(enemy => {
+            for (let j = 0; j < enemiesLen; j++) {
+                const enemy = enemies[j];
+                if (!enemy.active) continue;
+
                 if(Math.abs(bullet.x - enemy.x) < enemy.width/2 + bullet.width/2 &&
                    Math.abs(bullet.y - enemy.y) < enemy.height/2 + bullet.height/2) {
 
@@ -408,8 +419,8 @@ class SpaceEngine {
                         this.spawnPowerup(enemy.x, enemy.y);
                     }
                 }
-            });
-        });
+            }
+        }
 
         // Player hitting Powerups
         for(let i = this.entities.powerups.length - 1; i >= 0; i--) {
@@ -435,23 +446,29 @@ class SpaceEngine {
         };
 
         // Enemy Bullets hitting Player
-        this.pools.enemyBullets.filter(b => b.active).forEach(bullet => {
+        const enemyBullets = this.pools.enemyBullets;
+        const enemyBulletsLen = enemyBullets.length;
+        for (let i = 0; i < enemyBulletsLen; i++) {
+            const bullet = enemyBullets[i];
+            if (!bullet.active) continue;
             if(Math.abs(bullet.x - this.player.x) < this.player.width/2 + bullet.width/2 &&
                Math.abs(bullet.y - this.player.y) < this.player.height/2 + bullet.height/2) {
                 bullet.active = false;
                 takeDamage(bullet.damage);
             }
-        });
+        }
 
         // Enemies crashing into Player
-        this.pools.enemies.filter(e => e.active).forEach(enemy => {
+        for (let i = 0; i < enemiesLen; i++) {
+            const enemy = enemies[i];
+            if (!enemy.active) continue;
             if(Math.abs(enemy.x - this.player.x) < this.player.width/2 + enemy.width/2 &&
                Math.abs(enemy.y - this.player.y) < this.player.height/2 + enemy.height/2) {
                 enemy.active = false;
                 this.createExplosion(enemy.x, enemy.y, 15, enemy.color);
                 takeDamage(20);
             }
-        });
+        }
 
         // Boss crashing into player (rare but possible)
         if(this.boss && this.boss.active) {
@@ -463,20 +480,35 @@ class SpaceEngine {
     }
 
     updateEntities() {
+        const bullets = this.pools.bullets;
+        const bulletsLen = bullets.length;
+        const enemyBullets = this.pools.enemyBullets;
+        const enemyBulletsLen = enemyBullets.length;
+        const enemies = this.pools.enemies;
+        const enemiesLen = enemies.length;
+        const particles = this.pools.particles;
+        const particlesLen = particles.length;
+
         // Player Bullets
-        this.pools.bullets.filter(b => b.active).forEach(b => {
+        for (let i = 0; i < bulletsLen; i++) {
+            const b = bullets[i];
+            if (!b.active) continue;
             b.x += b.vx; b.y += b.vy;
             if(b.y < -20 || b.y > this.canvas.height + 20 || b.x < -20 || b.x > this.canvas.width + 20) b.active = false;
-        });
+        }
 
         // Enemy Bullets
-        this.pools.enemyBullets.filter(b => b.active).forEach(b => {
+        for (let i = 0; i < enemyBulletsLen; i++) {
+            const b = enemyBullets[i];
+            if (!b.active) continue;
             b.x += b.vx; b.y += b.vy;
             if(b.y > this.canvas.height + 20 || b.x < -20 || b.x > this.canvas.width + 20) b.active = false;
-        });
+        }
 
         // Enemies
-        this.pools.enemies.filter(e => e.active).forEach(e => {
+        for (let i = 0; i < enemiesLen; i++) {
+            const e = enemies[i];
+            if (!e.active) continue;
             e.y += e.vy;
             e.x += Math.sin(e.y * 0.05) * (e.type === 'fast' ? 2 : 0.5); // Wiggle
 
@@ -490,7 +522,7 @@ class SpaceEngine {
                 }
             }
             if(e.y > this.canvas.height + 50) e.active = false;
-        });
+        }
 
         // Powerups
         for(let i = this.entities.powerups.length - 1; i >= 0; i--) {
@@ -500,11 +532,13 @@ class SpaceEngine {
         }
 
         // Particles
-        this.pools.particles.filter(p => p.active).forEach(p => {
+        for (let i = 0; i < particlesLen; i++) {
+            const p = particles[i];
+            if (!p.active) continue;
             p.x += p.vx; p.y += p.vy;
             p.life -= 0.02;
             if(p.life <= 0) p.active = false;
-        });
+        }
     }
 
     drawBackground(ts) {
@@ -579,12 +613,23 @@ class SpaceEngine {
             }
         }
 
+        const enemies = this.pools.enemies;
+        const enemiesLen = enemies.length;
+        const bullets = this.pools.bullets;
+        const bulletsLen = bullets.length;
+        const enemyBullets = this.pools.enemyBullets;
+        const enemyBulletsLen = enemyBullets.length;
+        const particles = this.pools.particles;
+        const particlesLen = particles.length;
+
         // Draw Enemies
-        this.pools.enemies.filter(e => e.active).forEach(e => {
+        for (let i = 0; i < enemiesLen; i++) {
+            const e = enemies[i];
+            if (!e.active) continue;
             drawRect(e.x, e.y, e.width, e.height, e.color);
             // Core
             drawRect(e.x, e.y, e.width/2, e.height/2, '#000', false);
-        });
+        }
 
         // Draw Boss
         if(this.boss && this.boss.active) {
@@ -596,23 +641,29 @@ class SpaceEngine {
 
         // Draw Bullets
         this.ctx.shadowBlur = 0; // optimized
-        this.pools.bullets.filter(b => b.active).forEach(b => {
+        for (let i = 0; i < bulletsLen; i++) {
+            const b = bullets[i];
+            if (!b.active) continue;
             this.ctx.fillStyle = b.color;
             this.ctx.fillRect(b.x - b.width/2, b.y - b.height/2, b.width, b.height);
-        });
+        }
 
-        this.pools.enemyBullets.filter(b => b.active).forEach(b => {
+        for (let i = 0; i < enemyBulletsLen; i++) {
+            const b = enemyBullets[i];
+            if (!b.active) continue;
             this.ctx.fillStyle = b.color;
             this.ctx.fillRect(b.x - b.width/2, b.y - b.height/2, b.width, b.height);
-        });
+        }
 
         // Draw Particles
         this.ctx.globalCompositeOperation = 'lighter';
-        this.pools.particles.filter(p => p.active).forEach(p => {
+        for (let i = 0; i < particlesLen; i++) {
+            const p = particles[i];
+            if (!p.active) continue;
             this.ctx.globalAlpha = Math.max(0, p.life / p.maxLife);
             this.ctx.fillStyle = p.color;
             this.ctx.fillRect(p.x, p.y, p.size, p.size);
-        });
+        }
         this.ctx.globalAlpha = 1;
         this.ctx.globalCompositeOperation = 'source-over';
         this.ctx.shadowBlur = 0;
