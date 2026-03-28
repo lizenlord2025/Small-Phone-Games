@@ -1,3 +1,7 @@
+const sqDist = (x1, y1, x2, y2) => (x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1);
+const ENEMY_TYPES = ['basic', 'fast', 'tank'];
+const POWERUP_TYPES = ['double', 'spread', 'rapid', 'shield', 'heal'];
+
 class SpaceEngine {
     constructor() {
         this.canvas = document.getElementById('game-canvas');
@@ -277,8 +281,7 @@ class SpaceEngine {
         }
 
         if(Math.random() < diff.spawnRate) {
-            const types = ['basic', 'fast', 'tank'];
-            const type = types[Math.floor(Math.random() * types.length)];
+            const type = ENEMY_TYPES[Math.floor(Math.random() * ENEMY_TYPES.length)];
             const x = Math.random() * (this.canvas.width - 40) + 20;
 
             let hp, vy, color, width, height, score;
@@ -355,8 +358,7 @@ class SpaceEngine {
 
     spawnPowerup(x, y) {
         if(Math.random() < 0.15) { // 15% chance to drop powerup
-            const types = ['double', 'spread', 'rapid', 'shield', 'heal'];
-            const type = types[Math.floor(Math.random() * types.length)];
+            const type = POWERUP_TYPES[Math.floor(Math.random() * POWERUP_TYPES.length)];
             let color = '#fff';
             if(type === 'heal') color = '#37ff00';
             if(type === 'shield') color = '#b366ff';
@@ -368,11 +370,18 @@ class SpaceEngine {
         }
     }
 
-    checkCollisions() {
-        const sqDist = (x1,y1,x2,y2) => (x2-x1)*(x2-x1) + (y2-y1)*(y2-y1);
+    takeDamage(dmg) {
+        if(this.player.shieldTimer > 0) return; // Immune
+        this.player.hp -= dmg;
+        this.createExplosion(this.player.x, this.player.y, 10, '#00f7ff');
+        if(this.player.hp <= 0) this.gameOver();
+    }
 
+    checkCollisions() {
         // Player Bullets hitting Enemies or Boss
-        this.pools.bullets.filter(b => b.active).forEach(bullet => {
+        for (const bullet of this.pools.bullets) {
+            if (!bullet.active) continue;
+
             // Boss collision
             if(this.boss && this.boss.active) {
                 if(Math.abs(bullet.x - this.boss.x) < this.boss.width/2 + bullet.width/2 &&
@@ -391,8 +400,12 @@ class SpaceEngine {
                 }
             }
 
+            if (!bullet.active) continue;
+
             // Normal Enemies
-            this.pools.enemies.filter(e => e.active).forEach(enemy => {
+            for (const enemy of this.pools.enemies) {
+                if (!enemy.active) continue;
+
                 if(Math.abs(bullet.x - enemy.x) < enemy.width/2 + bullet.width/2 &&
                    Math.abs(bullet.y - enemy.y) < enemy.height/2 + bullet.height/2) {
 
@@ -407,9 +420,10 @@ class SpaceEngine {
                         this.createExplosion(enemy.x, enemy.y, 15, enemy.color);
                         this.spawnPowerup(enemy.x, enemy.y);
                     }
+                    break;
                 }
-            });
-        });
+            }
+        }
 
         // Player hitting Powerups
         for(let i = this.entities.powerups.length - 1; i >= 0; i--) {
@@ -426,57 +440,56 @@ class SpaceEngine {
             }
         }
 
-        // Taking Damage Logic
-        const takeDamage = (dmg) => {
-            if(this.player.shieldTimer > 0) return; // Immune
-            this.player.hp -= dmg;
-            this.createExplosion(this.player.x, this.player.y, 10, '#00f7ff');
-            if(this.player.hp <= 0) this.gameOver();
-        };
-
         // Enemy Bullets hitting Player
-        this.pools.enemyBullets.filter(b => b.active).forEach(bullet => {
+        for (const bullet of this.pools.enemyBullets) {
+            if (!bullet.active) continue;
+
             if(Math.abs(bullet.x - this.player.x) < this.player.width/2 + bullet.width/2 &&
                Math.abs(bullet.y - this.player.y) < this.player.height/2 + bullet.height/2) {
                 bullet.active = false;
-                takeDamage(bullet.damage);
+                this.takeDamage(bullet.damage);
             }
-        });
+        }
 
         // Enemies crashing into Player
-        this.pools.enemies.filter(e => e.active).forEach(enemy => {
+        for (const enemy of this.pools.enemies) {
+            if (!enemy.active) continue;
+
             if(Math.abs(enemy.x - this.player.x) < this.player.width/2 + enemy.width/2 &&
                Math.abs(enemy.y - this.player.y) < this.player.height/2 + enemy.height/2) {
                 enemy.active = false;
                 this.createExplosion(enemy.x, enemy.y, 15, enemy.color);
-                takeDamage(20);
+                this.takeDamage(20);
             }
-        });
+        }
 
         // Boss crashing into player (rare but possible)
         if(this.boss && this.boss.active) {
             if(Math.abs(this.boss.x - this.player.x) < this.boss.width/2 + this.player.width/2 &&
                Math.abs(this.boss.y - this.player.y) < this.boss.height/2 + this.player.height/2) {
-                takeDamage(5); // Constant damage while overlapping
+                this.takeDamage(5); // Constant damage while overlapping
             }
         }
     }
 
     updateEntities() {
         // Player Bullets
-        this.pools.bullets.filter(b => b.active).forEach(b => {
+        for (const b of this.pools.bullets) {
+            if (!b.active) continue;
             b.x += b.vx; b.y += b.vy;
             if(b.y < -20 || b.y > this.canvas.height + 20 || b.x < -20 || b.x > this.canvas.width + 20) b.active = false;
-        });
+        }
 
         // Enemy Bullets
-        this.pools.enemyBullets.filter(b => b.active).forEach(b => {
+        for (const b of this.pools.enemyBullets) {
+            if (!b.active) continue;
             b.x += b.vx; b.y += b.vy;
             if(b.y > this.canvas.height + 20 || b.x < -20 || b.x > this.canvas.width + 20) b.active = false;
-        });
+        }
 
         // Enemies
-        this.pools.enemies.filter(e => e.active).forEach(e => {
+        for (const e of this.pools.enemies) {
+            if (!e.active) continue;
             e.y += e.vy;
             e.x += Math.sin(e.y * 0.05) * (e.type === 'fast' ? 2 : 0.5); // Wiggle
 
@@ -490,7 +503,7 @@ class SpaceEngine {
                 }
             }
             if(e.y > this.canvas.height + 50) e.active = false;
-        });
+        }
 
         // Powerups
         for(let i = this.entities.powerups.length - 1; i >= 0; i--) {
@@ -500,11 +513,12 @@ class SpaceEngine {
         }
 
         // Particles
-        this.pools.particles.filter(p => p.active).forEach(p => {
+        for (const p of this.pools.particles) {
+            if (!p.active) continue;
             p.x += p.vx; p.y += p.vy;
             p.life -= 0.02;
             if(p.life <= 0) p.active = false;
-        });
+        }
     }
 
     drawBackground(ts) {
@@ -580,11 +594,12 @@ class SpaceEngine {
         }
 
         // Draw Enemies
-        this.pools.enemies.filter(e => e.active).forEach(e => {
+        for (const e of this.pools.enemies) {
+            if (!e.active) continue;
             drawRect(e.x, e.y, e.width, e.height, e.color);
             // Core
             drawRect(e.x, e.y, e.width/2, e.height/2, '#000', false);
-        });
+        }
 
         // Draw Boss
         if(this.boss && this.boss.active) {
@@ -596,23 +611,26 @@ class SpaceEngine {
 
         // Draw Bullets
         this.ctx.shadowBlur = 0; // optimized
-        this.pools.bullets.filter(b => b.active).forEach(b => {
+        for (const b of this.pools.bullets) {
+            if (!b.active) continue;
             this.ctx.fillStyle = b.color;
             this.ctx.fillRect(b.x - b.width/2, b.y - b.height/2, b.width, b.height);
-        });
+        }
 
-        this.pools.enemyBullets.filter(b => b.active).forEach(b => {
+        for (const b of this.pools.enemyBullets) {
+            if (!b.active) continue;
             this.ctx.fillStyle = b.color;
             this.ctx.fillRect(b.x - b.width/2, b.y - b.height/2, b.width, b.height);
-        });
+        }
 
         // Draw Particles
         this.ctx.globalCompositeOperation = 'lighter';
-        this.pools.particles.filter(p => p.active).forEach(p => {
+        for (const p of this.pools.particles) {
+            if (!p.active) continue;
             this.ctx.globalAlpha = Math.max(0, p.life / p.maxLife);
             this.ctx.fillStyle = p.color;
             this.ctx.fillRect(p.x, p.y, p.size, p.size);
-        });
+        }
         this.ctx.globalAlpha = 1;
         this.ctx.globalCompositeOperation = 'source-over';
         this.ctx.shadowBlur = 0;
