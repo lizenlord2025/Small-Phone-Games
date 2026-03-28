@@ -477,6 +477,15 @@ class SpaceEngine {
     }
 
     updateEntities() {
+        const bullets = this.pools.bullets;
+        const bulletsLen = bullets.length;
+        const enemyBullets = this.pools.enemyBullets;
+        const enemyBulletsLen = enemyBullets.length;
+        const enemies = this.pools.enemies;
+        const enemiesLen = enemies.length;
+        const particles = this.pools.particles;
+        const particlesLen = particles.length;
+
         // Player Bullets
         for (let i = 0; i < this.pools.bullets.length; i++) {
             const b = this.pools.bullets[i];
@@ -600,6 +609,15 @@ class SpaceEngine {
                 this.ctx.stroke();
             }
         }
+
+        const enemies = this.pools.enemies;
+        const enemiesLen = enemies.length;
+        const bullets = this.pools.bullets;
+        const bulletsLen = bullets.length;
+        const enemyBullets = this.pools.enemyBullets;
+        const enemyBulletsLen = enemyBullets.length;
+        const particles = this.pools.particles;
+        const particlesLen = particles.length;
 
         // Draw Enemies
         for (let i = 0; i < this.pools.enemies.length; i++) {
