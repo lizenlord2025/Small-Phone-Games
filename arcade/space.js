@@ -1,3 +1,7 @@
+const sqDist = (x1, y1, x2, y2) => (x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1);
+const ENEMY_TYPES = ['basic', 'fast', 'tank'];
+const POWERUP_TYPES = ['double', 'spread', 'rapid', 'shield', 'heal'];
+
 class SpaceEngine {
     constructor() {
         this.canvas = document.getElementById('game-canvas');
@@ -277,8 +281,7 @@ class SpaceEngine {
         }
 
         if(Math.random() < diff.spawnRate) {
-            const types = ['basic', 'fast', 'tank'];
-            const type = types[Math.floor(Math.random() * types.length)];
+            const type = ENEMY_TYPES[Math.floor(Math.random() * ENEMY_TYPES.length)];
             const x = Math.random() * (this.canvas.width - 40) + 20;
 
             let hp, vy, color, width, height, score;
@@ -355,8 +358,7 @@ class SpaceEngine {
 
     spawnPowerup(x, y) {
         if(Math.random() < 0.15) { // 15% chance to drop powerup
-            const types = ['double', 'spread', 'rapid', 'shield', 'heal'];
-            const type = types[Math.floor(Math.random() * types.length)];
+            const type = POWERUP_TYPES[Math.floor(Math.random() * POWERUP_TYPES.length)];
             let color = '#fff';
             if(type === 'heal') color = '#37ff00';
             if(type === 'shield') color = '#b366ff';
@@ -368,9 +370,14 @@ class SpaceEngine {
         }
     }
 
-    checkCollisions() {
-        const sqDist = (x1,y1,x2,y2) => (x2-x1)*(x2-x1) + (y2-y1)*(y2-y1);
+    takeDamage(dmg) {
+        if(this.player.shieldTimer > 0) return; // Immune
+        this.player.hp -= dmg;
+        this.createExplosion(this.player.x, this.player.y, 10, '#00f7ff');
+        if(this.player.hp <= 0) this.gameOver();
+    }
 
+    checkCollisions() {
         // Player Bullets hitting Enemies or Boss
         for (let i = 0; i < this.pools.bullets.length; i++) {
             const bullet = this.pools.bullets[i];
@@ -394,6 +401,8 @@ class SpaceEngine {
                 }
             }
 
+            if (!bullet.active) continue;
+
             // Normal Enemies
             for (let j = 0; j < this.pools.enemies.length; j++) {
                 const enemy = this.pools.enemies[j];
@@ -413,6 +422,7 @@ class SpaceEngine {
                         this.createExplosion(enemy.x, enemy.y, 15, enemy.color);
                         this.spawnPowerup(enemy.x, enemy.y);
                     }
+                    break;
                 }
             }
         }
@@ -432,14 +442,6 @@ class SpaceEngine {
             }
         }
 
-        // Taking Damage Logic
-        const takeDamage = (dmg) => {
-            if(this.player.shieldTimer > 0) return; // Immune
-            this.player.hp -= dmg;
-            this.createExplosion(this.player.x, this.player.y, 10, '#00f7ff');
-            if(this.player.hp <= 0) this.gameOver();
-        };
-
         // Enemy Bullets hitting Player
         for (let i = 0; i < this.pools.enemyBullets.length; i++) {
             const bullet = this.pools.enemyBullets[i];
@@ -448,7 +450,7 @@ class SpaceEngine {
             if(Math.abs(bullet.x - this.player.x) < this.player.width/2 + bullet.width/2 &&
                Math.abs(bullet.y - this.player.y) < this.player.height/2 + bullet.height/2) {
                 bullet.active = false;
-                takeDamage(bullet.damage);
+                this.takeDamage(bullet.damage);
             }
         }
 
@@ -461,7 +463,7 @@ class SpaceEngine {
                Math.abs(enemy.y - this.player.y) < this.player.height/2 + enemy.height/2) {
                 enemy.active = false;
                 this.createExplosion(enemy.x, enemy.y, 15, enemy.color);
-                takeDamage(20);
+                this.takeDamage(20);
             }
         }
 
@@ -469,7 +471,7 @@ class SpaceEngine {
         if(this.boss && this.boss.active) {
             if(Math.abs(this.boss.x - this.player.x) < this.boss.width/2 + this.player.width/2 &&
                Math.abs(this.boss.y - this.player.y) < this.boss.height/2 + this.player.height/2) {
-                takeDamage(5); // Constant damage while overlapping
+                this.takeDamage(5); // Constant damage while overlapping
             }
         }
     }
