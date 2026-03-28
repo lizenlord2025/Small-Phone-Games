@@ -379,7 +379,8 @@ class SpaceEngine {
 
     checkCollisions() {
         // Player Bullets hitting Enemies or Boss
-        for (const bullet of this.pools.bullets) {
+        for (let i = 0; i < this.pools.bullets.length; i++) {
+            const bullet = this.pools.bullets[i];
             if (!bullet.active) continue;
 
             // Boss collision
@@ -403,7 +404,8 @@ class SpaceEngine {
             if (!bullet.active) continue;
 
             // Normal Enemies
-            for (const enemy of this.pools.enemies) {
+            for (let j = 0; j < this.pools.enemies.length; j++) {
+                const enemy = this.pools.enemies[j];
                 if (!enemy.active) continue;
 
                 if(Math.abs(bullet.x - enemy.x) < enemy.width/2 + bullet.width/2 &&
@@ -441,7 +443,8 @@ class SpaceEngine {
         }
 
         // Enemy Bullets hitting Player
-        for (const bullet of this.pools.enemyBullets) {
+        for (let i = 0; i < this.pools.enemyBullets.length; i++) {
+            const bullet = this.pools.enemyBullets[i];
             if (!bullet.active) continue;
 
             if(Math.abs(bullet.x - this.player.x) < this.player.width/2 + bullet.width/2 &&
@@ -452,7 +455,8 @@ class SpaceEngine {
         }
 
         // Enemies crashing into Player
-        for (const enemy of this.pools.enemies) {
+        for (let i = 0; i < this.pools.enemies.length; i++) {
+            const enemy = this.pools.enemies[i];
             if (!enemy.active) continue;
 
             if(Math.abs(enemy.x - this.player.x) < this.player.width/2 + enemy.width/2 &&
@@ -474,21 +478,24 @@ class SpaceEngine {
 
     updateEntities() {
         // Player Bullets
-        for (const b of this.pools.bullets) {
+        for (let i = 0; i < this.pools.bullets.length; i++) {
+            const b = this.pools.bullets[i];
             if (!b.active) continue;
             b.x += b.vx; b.y += b.vy;
             if(b.y < -20 || b.y > this.canvas.height + 20 || b.x < -20 || b.x > this.canvas.width + 20) b.active = false;
         }
 
         // Enemy Bullets
-        for (const b of this.pools.enemyBullets) {
+        for (let i = 0; i < this.pools.enemyBullets.length; i++) {
+            const b = this.pools.enemyBullets[i];
             if (!b.active) continue;
             b.x += b.vx; b.y += b.vy;
             if(b.y > this.canvas.height + 20 || b.x < -20 || b.x > this.canvas.width + 20) b.active = false;
         }
 
         // Enemies
-        for (const e of this.pools.enemies) {
+        for (let i = 0; i < this.pools.enemies.length; i++) {
+            const e = this.pools.enemies[i];
             if (!e.active) continue;
             e.y += e.vy;
             e.x += Math.sin(e.y * 0.05) * (e.type === 'fast' ? 2 : 0.5); // Wiggle
@@ -513,7 +520,8 @@ class SpaceEngine {
         }
 
         // Particles
-        for (const p of this.pools.particles) {
+        for (let i = 0; i < this.pools.particles.length; i++) {
+            const p = this.pools.particles[i];
             if (!p.active) continue;
             p.x += p.vx; p.y += p.vy;
             p.life -= 0.02;
@@ -594,7 +602,8 @@ class SpaceEngine {
         }
 
         // Draw Enemies
-        for (const e of this.pools.enemies) {
+        for (let i = 0; i < this.pools.enemies.length; i++) {
+            const e = this.pools.enemies[i];
             if (!e.active) continue;
             drawRect(e.x, e.y, e.width, e.height, e.color);
             // Core
@@ -611,13 +620,15 @@ class SpaceEngine {
 
         // Draw Bullets
         this.ctx.shadowBlur = 0; // optimized
-        for (const b of this.pools.bullets) {
+        for (let i = 0; i < this.pools.bullets.length; i++) {
+            const b = this.pools.bullets[i];
             if (!b.active) continue;
             this.ctx.fillStyle = b.color;
             this.ctx.fillRect(b.x - b.width/2, b.y - b.height/2, b.width, b.height);
         }
 
-        for (const b of this.pools.enemyBullets) {
+        for (let i = 0; i < this.pools.enemyBullets.length; i++) {
+            const b = this.pools.enemyBullets[i];
             if (!b.active) continue;
             this.ctx.fillStyle = b.color;
             this.ctx.fillRect(b.x - b.width/2, b.y - b.height/2, b.width, b.height);
@@ -625,7 +636,8 @@ class SpaceEngine {
 
         // Draw Particles
         this.ctx.globalCompositeOperation = 'lighter';
-        for (const p of this.pools.particles) {
+        for (let i = 0; i < this.pools.particles.length; i++) {
+            const p = this.pools.particles[i];
             if (!p.active) continue;
             this.ctx.globalAlpha = Math.max(0, p.life / p.maxLife);
             this.ctx.fillStyle = p.color;
